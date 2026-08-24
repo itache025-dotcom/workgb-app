@@ -5,7 +5,6 @@ import 'provedores/estado_global.dart';
 import 'telas/tela_feed.dart';
 import 'telas/tela_painel_profissional.dart';
 import 'servicos/auth_service.dart';
-import 'package:upgrader/upgrader.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,21 +34,7 @@ class WorkGBApp extends StatelessWidget {
             seedColor: const Color(0xFF2563EB),
           ),
         ),
-        home: UpgradeAlert(
-          upgrader: Upgrader(
-            // Configuração para APK direto (fora da loja)
-            // Deves criar um ficheiro appcast.xml no teu servidor/github
-            appcastConfig: AppcastConfiguration(
-              url: 'https://raw.githubusercontent.com/teu-usuario/workgb/main/appcast.xml',
-              supportedOS: ['android'],
-            ),
-            debugLogging: true,
-            showIgnore: false,
-            showLater: true,
-            durationUntilAlertAgain: const Duration(days: 1),
-          ),
-          child: const RotaInicial(),
-        ),
+        home: const RotaInicial(),
       ),
     );
   }
