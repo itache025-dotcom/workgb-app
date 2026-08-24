@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+    <channel>
+        <title>WorkGB Updates</title>
+        <item>
+            <title>Versão 1.0.1</title>
+            <description>Correções de bugs e melhorias no sistema de avaliações.</description>
+            <pubDate>Mon, 24 Aug 2026 12:00:00 +0000</pubDate>
+            <enclosure url="https://github.com/teu-usuario/workgb/releases/download/v1.0.1/app-release.apk"
+                       sparkle:version="1.0.1"
+                       sparkle:os="android"
+                       length="0"
+                       type="application/vnd.android.package-archive" />
+        </item>
+    </channel>
+</rss>
