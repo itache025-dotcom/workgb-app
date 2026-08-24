@@ -17,6 +17,7 @@ class SupabaseService {
 
     try {
       final response = await _client.from('trabalhadores').select();
+      print('DEBUG CARDS: Resposta bruta: $response');
       
       print('DEBUG: Supabase retornou ${response.length} registros');
 

@@ -48,10 +48,12 @@ class AuthService {
     required String emailUsuario,
     required String senhaUsuario,
   }) async {
+    print('DEBUG LOGIN: Tentando login com $emailUsuario');
     final authResponse = await _supabase.auth.signInWithPassword(
       email: emailUsuario,
       password: senhaUsuario,
     );
+    print('DEBUG LOGIN: Resposta: $authResponse');
 
     final usuario = authResponse.user;
     if (usuario == null) {
