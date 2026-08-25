@@ -99,13 +99,13 @@ class _TelaEditarPerfilState extends State<TelaEditarPerfil> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
-        title: const Text('Editar Perfil', style: TextStyle(fontFamily: 'Poppins', color: Color(0xFF1A3C6E))),
+        title: Text('Editar Perfil', style: TextStyle(fontFamily: 'Poppins', color: Theme.of(context).colorScheme.onSurface)),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1A3C6E)),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -163,7 +163,7 @@ class _TelaEditarPerfilState extends State<TelaEditarPerfil> {
               ),
               const SizedBox(height: 32),
 
-              const Text('Mudar Senha', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A3C6E))),
+              Text('Mudar Senha', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
               const SizedBox(height: 16),
 
               // SENHA ANTIGA

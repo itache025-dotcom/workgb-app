@@ -19,17 +19,17 @@ class _TelaMinhasAvaliacoesState extends State<TelaMinhasAvaliacoes> {
     final usuario = estado.usuarioLogado;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1A3C6E)),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Minhas Avaliações',
-          style: TextStyle(fontFamily: 'Poppins', color: Color(0xFF1A3C6E), fontWeight: FontWeight.bold),
+          style: TextStyle(fontFamily: 'Poppins', color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
         ),
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
@@ -84,7 +84,7 @@ class _TelaMinhasAvaliacoesState extends State<TelaMinhasAvaliacoes> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
@@ -93,16 +93,16 @@ class _TelaMinhasAvaliacoesState extends State<TelaMinhasAvaliacoes> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildSummaryItem('Média', mediaGeral.toStringAsFixed(1), Icons.star, Colors.amber),
-                    _buildSummaryItem('Total', totalAvaliacoes.toString(), Icons.rate_review, Colors.blue),
+                    _buildSummaryItem(context, 'Média', mediaGeral.toStringAsFixed(1), Icons.star, Colors.amber),
+                    _buildSummaryItem(context, 'Total', totalAvaliacoes.toString(), Icons.rate_review, Colors.blue),
                   ],
                 ),
               ),
               const SizedBox(height: 32),
 
-              const Text(
+              Text(
                 'Detalhes por Card',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A3C6E)),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
               ),
               const SizedBox(height: 16),
 
@@ -116,12 +116,12 @@ class _TelaMinhasAvaliacoesState extends State<TelaMinhasAvaliacoes> {
     );
   }
 
-  Widget _buildSummaryItem(String label, String value, IconData icon, Color color) {
+  Widget _buildSummaryItem(BuildContext context, String label, String value, IconData icon, Color color) {
     return Column(
       children: [
         Icon(icon, color: color, size: 28),
         const SizedBox(height: 8),
-        Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1A3C6E))),
+        Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
         Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[500])),
       ],
     );
@@ -154,9 +154,9 @@ class _TelaMinhasAvaliacoesState extends State<TelaMinhasAvaliacoes> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(color: Colors.grey.shade100.withOpacity(0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,7 +164,7 @@ class _TelaMinhasAvaliacoesState extends State<TelaMinhasAvaliacoes> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(nomeAvaliador, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1A3C6E))),
+              Text(nomeAvaliador, style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
               Row(
                 children: List.generate(5, (index) => Icon(
                   index < estrelas ? Icons.star : Icons.star_border,
@@ -175,7 +175,7 @@ class _TelaMinhasAvaliacoesState extends State<TelaMinhasAvaliacoes> {
             ],
           ),
           const SizedBox(height: 8),
-          Text(comentario, style: TextStyle(color: Colors.grey[700], fontSize: 14)),
+          Text(comentario, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8), fontSize: 14)),
           const SizedBox(height: 8),
           Text(
             '${data.day}/${data.month}/${data.year}',

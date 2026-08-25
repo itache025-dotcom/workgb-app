@@ -171,20 +171,17 @@ class _TelaFeedState extends State<TelaFeed> {
     }).toList();
 
     return Scaffold(
-
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-
-
-        title: const Text(
+        title: Text(
           'WorkGB',
           style: TextStyle(
             fontFamily: 'Poppins',
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1A3C6E),
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 1,
         shadowColor: const Color(0xFF2563EB).withOpacity(0.1),
         actions: [
@@ -313,7 +310,7 @@ class _TelaFeedState extends State<TelaFeed> {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: Theme.of(context).cardColor,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -398,7 +395,7 @@ class _TelaFeedState extends State<TelaFeed> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -444,11 +441,11 @@ class _TelaFeedState extends State<TelaFeed> {
                   children: [
                     Text(
                       trabalhador.nomeTrabalhador,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF1A3C6E),
+                        color: Theme.of(context).textTheme.titleLarge?.color,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

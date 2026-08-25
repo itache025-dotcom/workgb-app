@@ -55,17 +55,17 @@ class TelaPerfilUsuario extends StatelessWidget {
     final usuario = estado.usuarioLogado;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1A3C6E)),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Meu Perfil',
-          style: TextStyle(fontFamily: 'Poppins', color: Color(0xFF1A3C6E)),
+          style: TextStyle(fontFamily: 'Poppins', color: Theme.of(context).colorScheme.onSurface),
         ),
       ),
       body: SingleChildScrollView(
@@ -94,11 +94,11 @@ class TelaPerfilUsuario extends StatelessWidget {
             Center(
               child: Text(
                 usuario?.nomeUsuario ?? 'Utilizador',
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1A3C6E),
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),
@@ -108,7 +108,7 @@ class TelaPerfilUsuario extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
@@ -120,11 +120,11 @@ class TelaPerfilUsuario extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  _buildInfoRow(Icons.email_outlined, 'Email', usuario?.emailUsuario ?? ''),
+                  _buildInfoRow(context, Icons.email_outlined, 'Email', usuario?.emailUsuario ?? ''),
                   const Divider(height: 24),
-                  _buildInfoRow(Icons.phone_outlined, 'Telefone', usuario?.telefoneUsuario ?? ''),
+                  _buildInfoRow(context, Icons.phone_outlined, 'Telefone', usuario?.telefoneUsuario ?? ''),
                   const Divider(height: 24),
-                  _buildInfoRow(Icons.location_on_outlined, 'Localização', 'Guiné-Bissau'),
+                  _buildInfoRow(context, Icons.location_on_outlined, 'Localização', 'Guiné-Bissau'),
                 ],
               ),
             ),
@@ -217,7 +217,7 @@ class TelaPerfilUsuario extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String valor) {
+  Widget _buildInfoRow(BuildContext context, IconData icon, String label, String valor) {
     return Row(
       children: [
         Icon(icon, color: const Color(0xFF2563EB), size: 22),
@@ -235,10 +235,10 @@ class TelaPerfilUsuario extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               valor.isEmpty ? 'Não definido' : valor,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
-                color: Color(0xFF1A3C6E),
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ],

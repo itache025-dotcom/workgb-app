@@ -49,13 +49,13 @@ class TelaPainelProfissional extends StatelessWidget {
     final usuario = estado.usuarioLogado;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Painel do Profissional',
-          style: TextStyle(fontFamily: 'Poppins', color: Color(0xFF1A3C6E), fontWeight: FontWeight.bold),
+          style: TextStyle(fontFamily: 'Poppins', color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
@@ -118,9 +118,9 @@ class TelaPainelProfissional extends StatelessWidget {
             ),
             const SizedBox(height: 32),
 
-            const Text(
+            Text(
               'Ferramentas',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A3C6E)),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
             ),
             const SizedBox(height: 16),
 
@@ -181,15 +181,15 @@ class TelaPainelProfissional extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(color: Colors.grey.shade200.withOpacity(0.2)),
               ),
               child: Column(
                 children: [
-                  _buildInfoItem(Icons.email_outlined, usuario?.emailUsuario ?? ''),
+                  _buildInfoItem(context, Icons.email_outlined, usuario?.emailUsuario ?? ''),
                   const Divider(),
-                  _buildInfoItem(Icons.phone_outlined, usuario?.telefoneUsuario ?? 'Não definido'),
+                  _buildInfoItem(context, Icons.phone_outlined, usuario?.telefoneUsuario ?? 'Não definido'),
                 ],
               ),
             ),
@@ -201,7 +201,7 @@ class TelaPainelProfissional extends StatelessWidget {
 
   Widget _buildMenuButton(BuildContext context, {required IconData icon, required String label, required Color color, required VoidCallback onTap}) {
     return Material(
-      color: Colors.white,
+      color: Theme.of(context).cardColor,
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         onTap: onTap,
@@ -210,7 +210,7 @@ class TelaPainelProfissional extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.grey.shade100),
+            border: Border.all(color: Colors.grey.shade100.withOpacity(0.1)),
             boxShadow: [
               BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8, offset: const Offset(0, 4)),
             ],
@@ -223,7 +223,7 @@ class TelaPainelProfissional extends StatelessWidget {
               Text(
                 label,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1A3C6E)),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface),
               ),
             ],
           ),
@@ -232,12 +232,12 @@ class TelaPainelProfissional extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoItem(IconData icon, String text) {
+  Widget _buildInfoItem(BuildContext context, IconData icon, String text) {
     return Row(
       children: [
         Icon(icon, size: 18, color: Colors.grey),
         const SizedBox(width: 12),
-        Text(text, style: const TextStyle(fontSize: 14, color: Color(0xFF1A3C6E))),
+        Text(text, style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface)),
       ],
     );
   }

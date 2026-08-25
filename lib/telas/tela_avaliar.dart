@@ -68,13 +68,13 @@ class _TelaAvaliarState extends State<TelaAvaliar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
-        title: const Text('Avaliar Profissional', style: TextStyle(color: Color(0xFF1A3C6E))),
+        title: Text('Avaliar Profissional', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.black),
+          icon: Icon(Icons.close, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -85,7 +85,7 @@ class _TelaAvaliarState extends State<TelaAvaliar> {
           children: [
             Text(
               'Como foi o serviço de ${widget.trabalhador.nomeTrabalhador}?',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A3C6E)),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),

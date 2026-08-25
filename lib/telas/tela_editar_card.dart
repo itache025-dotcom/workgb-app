@@ -313,15 +313,15 @@ class _TelaEditarCardState extends State<TelaEditarCard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1A3C6E)),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Editar Card', style: TextStyle(fontFamily: 'Poppins', color: Color(0xFF1A3C6E))),
+        title: Text('Editar Card', style: TextStyle(fontFamily: 'Poppins', color: Theme.of(context).colorScheme.onSurface)),
       ),
       body: Center(
         child: ConstrainedBox(
@@ -456,14 +456,14 @@ class _TelaEditarCardState extends State<TelaEditarCard> {
               const SizedBox(height: 24),
 
               // ---------- DISPONIBILIDADE ----------
-              const Text('Disponibilidade', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1A3C6E))),
+              Text('Disponibilidade', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
                 children: _diasSemana.map((dia) {
                   final selecionado = _diasSelecionados.contains(dia);
                   return FilterChip(
-                    label: Text(dia, style: TextStyle(fontSize: 12, color: selecionado ? Colors.white : Colors.black)),
+                    label: Text(dia, style: TextStyle(fontSize: 12, color: selecionado ? Colors.white : Theme.of(context).colorScheme.onSurface)),
                     selected: selecionado,
                     onSelected: (v) {
                       setState(() {
@@ -503,7 +503,7 @@ class _TelaEditarCardState extends State<TelaEditarCard> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Documentos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1A3C6E))),
+                  Text('Documentos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
                   TextButton.icon(
                     onPressed: _adicionarDocumentos,
                     icon: const Icon(Icons.add_circle_outline),

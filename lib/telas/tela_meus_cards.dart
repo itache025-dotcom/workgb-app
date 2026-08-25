@@ -89,17 +89,17 @@ class _TelaMeusCardsState extends State<TelaMeusCards> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1A3C6E)),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Meus Cards',
-          style: TextStyle(fontFamily: 'Poppins', color: Color(0xFF1A3C6E)),
+          style: TextStyle(fontFamily: 'Poppins', color: Theme.of(context).colorScheme.onSurface),
         ),
       ),
       body: _carregando
@@ -139,7 +139,7 @@ class _TelaMeusCardsState extends State<TelaMeusCards> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -163,7 +163,7 @@ class _TelaMeusCardsState extends State<TelaMeusCards> {
               : null,
         ),
         title: Text(card.nomeTrabalhador,
-            style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF1A3C6E))),
+            style: TextStyle(fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface)),
         subtitle: Text(card.profissaoTrabalhador,
             style: const TextStyle(color: Color(0xFF2563EB), fontSize: 12)),
         trailing: PopupMenuButton<String>(

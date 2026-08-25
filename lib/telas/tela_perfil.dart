@@ -41,17 +41,17 @@ class _TelaPerfilState extends State<TelaPerfil> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1A3C6E)),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Perfil',
-          style: TextStyle(fontFamily: 'Poppins', color: Color(0xFF1A3C6E)),
+          style: TextStyle(fontFamily: 'Poppins', color: Theme.of(context).colorScheme.onSurface),
         ),
       ),
       body: Center(
@@ -131,7 +131,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
     return [
       Text(
         widget.trabalhador.nomeTrabalhador,
-        style: const TextStyle(fontFamily: 'Poppins', fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1A3C6E)),
+        style: TextStyle(fontFamily: 'Poppins', fontSize: 26, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
       ),
       const SizedBox(height: 8),
       Container(
@@ -144,15 +144,15 @@ class _TelaPerfilState extends State<TelaPerfil> {
       ),
       const SizedBox(height: 24),
 
-      const Text('Sobre', style: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF1A3C6E))),
+      Text('Sobre', style: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface)),
       const SizedBox(height: 8),
       Text(
         widget.trabalhador.descricaoTrabalhador ?? 'Sem descrição disponível.',
-        style: TextStyle(fontSize: 15, color: Colors.grey[700], height: 1.5),
+        style: TextStyle(fontSize: 15, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7), height: 1.5),
       ),
       const SizedBox(height: 24),
 
-      const Text('Localização', style: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF1A3C6E))),
+      Text('Localização', style: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface)),
       const SizedBox(height: 8),
       Row(
         children: [
@@ -160,23 +160,23 @@ class _TelaPerfilState extends State<TelaPerfil> {
           const SizedBox(width: 8),
           Text(
             '📍 Bairro: ${_extrairBairro(widget.trabalhador.descricaoTrabalhador ?? "")}',
-            style: TextStyle(fontSize: 15, color: Colors.grey[700]),
+            style: TextStyle(fontSize: 15, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7)),
           ),
         ],
       ),
       const SizedBox(height: 24),
 
       if (widget.trabalhador.disponibilidadeDias.isNotEmpty) ...[
-        const Text('Disponibilidade', style: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF1A3C6E))),
+        Text('Disponibilidade', style: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 8),
-        Text('Dias: ${widget.trabalhador.disponibilidadeDias.join(', ')}', style: TextStyle(fontSize: 14, color: Colors.grey[700])),
+        Text('Dias: ${widget.trabalhador.disponibilidadeDias.join(', ')}', style: TextStyle(fontSize: 14, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7))),
         if (widget.trabalhador.disponibilidadeInicio != null && widget.trabalhador.disponibilidadeFim != null)
-          Text('Horário: ${widget.trabalhador.disponibilidadeInicio} - ${widget.trabalhador.disponibilidadeFim}', style: TextStyle(fontSize: 14, color: Colors.grey[700])),
+          Text('Horário: ${widget.trabalhador.disponibilidadeInicio} - ${widget.trabalhador.disponibilidadeFim}', style: TextStyle(fontSize: 14, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7))),
         const SizedBox(height: 24),
       ],
 
       if (widget.trabalhador.documentos.isNotEmpty) ...[
-        const Text('Documentos e Certificados', style: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF1A3C6E))),
+        Text('Documentos e Certificados', style: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 12),
         SizedBox(
           height: 100,
@@ -192,16 +192,16 @@ class _TelaPerfilState extends State<TelaPerfil> {
                   width: 100,
                   margin: const EdgeInsets.only(right: 12),
                   decoration: BoxDecoration(
-                    color: Colors.grey[100],
+                    color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey[300]!),
+                    border: Border.all(color: Colors.grey[300]!.withOpacity(0.2)),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(fileInfo['icone'] as IconData, color: fileInfo['cor'] as Color, size: 32),
                       const SizedBox(height: 4),
-                      const Text('Ver', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      Text('Ver', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
                     ],
                   ),
                 ),
@@ -217,7 +217,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text('Avaliações', style: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF1A3C6E))),
+          Text('Avaliações', style: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface)),
           if (!souEu)
             TextButton.icon(
               onPressed: () {
@@ -293,9 +293,9 @@ class _TelaPerfilState extends State<TelaPerfil> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: Colors.grey[300]!.withOpacity(0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -303,7 +303,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(nomeCliente, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1A3C6E))),
+              Text(nomeCliente, style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
               Row(
                 children: List.generate(5, (index) => Icon(
                   index < estrelas ? Icons.star : Icons.star_border,
@@ -314,22 +314,22 @@ class _TelaPerfilState extends State<TelaPerfil> {
             ],
           ),
           const SizedBox(height: 8),
-          Text(comentario, style: TextStyle(color: Colors.grey[800])),
+          Text(comentario, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8))),
           
           if (resposta != null) ...[
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue[50],
+                color: const Color(0xFF2563EB).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Resposta do Profissional:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF1A3C6E))),
+                  Text('Resposta do Profissional:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Theme.of(context).colorScheme.onSurface)),
                   const SizedBox(height: 4),
-                  Text(resposta, style: TextStyle(fontSize: 13, color: Colors.blue[900])),
+                  Text(resposta, style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.9))),
                 ],
               ),
             ),

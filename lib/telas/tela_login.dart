@@ -70,12 +70,12 @@ class _TelaLoginState extends State<TelaLogin> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1A3C6E)),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -94,13 +94,13 @@ class _TelaLoginState extends State<TelaLogin> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // ---------- TÍTULO ----------
-                    const Text(
+                    Text(
                       'WorkGB',
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 32,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A3C6E),
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                       textAlign: TextAlign.center,
                     ),
