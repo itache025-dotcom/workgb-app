@@ -6,6 +6,10 @@ import '../servicos/responsividade.dart';
 import '../servicos/supabase_service.dart';
 import '../provedores/estado_global.dart';
 import 'tela_avaliar.dart';
+import 'tela_chat.dart';
+import 'tela_login.dart';
+import 'tela_imagem_ampliada.dart';
+import 'tela_video_player.dart';
 
 /// Tela de perfil completo do trabalhador
 class TelaPerfil extends StatefulWidget {
@@ -108,18 +112,36 @@ class _TelaPerfilState extends State<TelaPerfil> {
     );
   }
 
+  void _abrirMidia(String url) {
+    final uri = url.toLowerCase();
+    if (uri.endsWith('.mp4') || uri.endsWith('.mov') || uri.endsWith('.avi')) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => TelaVideoPlayer(urlVideo: url)),
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => TelaImagemAmpliada(urlImagem: url)),
+      );
+    }
+  }
+
   Widget _buildFotoPerfil() {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       height: 280,
-      decoration: BoxDecoration(color: const Color(0xFF2563EB).withOpacity(0.1)),
       child: widget.trabalhador.fotoTrabalhador != null && widget.trabalhador.fotoTrabalhador!.isNotEmpty
-          ? Image.network(
-        widget.trabalhador.fotoTrabalhador!,
-        fit: BoxFit.cover,
-        width: double.infinity,
-        errorBuilder: (_, __, ___) => _buildPlaceholderPlaceholder(widget.trabalhador),
-      )
+          ? GestureDetector(
+              onTap: () => _abrirMidia(widget.trabalhador.fotoTrabalhador!),
+              child: Image.network(
+                widget.trabalhador.fotoTrabalhador!,
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+                errorBuilder: (_, __, ___) => _buildPlaceholderPlaceholder(widget.trabalhador),
+              ),
+            )
           : _buildPlaceholderPlaceholder(widget.trabalhador),
     );
   }
@@ -246,6 +268,30 @@ class _TelaPerfilState extends State<TelaPerfil> {
         children: [
           Expanded(
             child: ElevatedButton.icon(
+              onPressed: () {
+                final estado = Provider.of<EstadoGlobal>(context, listen: false);
+                if (!estado.estaLogado) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const TelaLogin(tipoLogin: 'cliente')),
+                  );
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => TelaChat(trabalhador: widget.trabalhador)),
+                  );
+                }
+              },
+              icon: const Icon(Icons.chat_bubble_outline, color: Colors.white, size: 18),
+              label: const Text('Chat', style: TextStyle(color: Colors.white, fontSize: 13)),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2563EB), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)), padding: const EdgeInsets.symmetric(vertical: 14)),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: ElevatedButton.icon(
               onPressed: () async {
                 final telefone = _extrairTelefone(widget.trabalhador.descricaoTrabalhador ?? '');
                 if (telefone.isNotEmpty) {
@@ -253,12 +299,12 @@ class _TelaPerfilState extends State<TelaPerfil> {
                   if (await canLaunchUrl(url)) await launchUrl(url);
                 }
               },
-              icon: const Icon(Icons.phone, color: Colors.white),
-              label: const Text('Ligar', style: TextStyle(color: Colors.white)),
+              icon: const Icon(Icons.phone, color: Colors.white, size: 18),
+              label: const Text('Ligar', style: TextStyle(color: Colors.white, fontSize: 13)),
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2563EB), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)), padding: const EdgeInsets.symmetric(vertical: 14)),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Expanded(
             child: ElevatedButton.icon(
               onPressed: () async {
@@ -268,8 +314,8 @@ class _TelaPerfilState extends State<TelaPerfil> {
                   if (await canLaunchUrl(url)) await launchUrl(url, mode: LaunchMode.externalApplication);
                 }
               },
-              icon: const Icon(Icons.chat, color: Colors.white),
-              label: const Text('WhatsApp', style: TextStyle(color: Colors.white)),
+              icon: const Icon(Icons.chat, color: Colors.white, size: 18),
+              label: const Text('WhatsApp', style: TextStyle(color: Colors.white, fontSize: 13)),
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF25D366), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)), padding: const EdgeInsets.symmetric(vertical: 14)),
             ),
           ),

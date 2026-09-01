@@ -1,9 +1,30 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import '../modelos/usuario_model.dart';
 import 'conversao.dart';
 
 class AuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
+
+  /// Salva o token FCM para notificações push
+  Future<void> salvarTokenPush(String utilizadorId) async {
+    try {
+      // Garante que o Firebase está inicializado
+      await Firebase.initializeApp();
+      
+      final messaging = FirebaseMessaging.instance;
+      final token = await messaging.getToken();
+      if (token != null) {
+        await _supabase.from('tokens_push').upsert({
+          'utilizador_id': utilizadorId,
+          'token': token,
+        }, onConflict: 'utilizador_id');
+      }
+    } catch (e) {
+      print('Erro ao salvar token push: $e');
+    }
+  }
 
   /// Regista um novo utilizador com email e senha
   Future<UsuarioModel> cadastrarUsuario({
@@ -13,6 +34,7 @@ class AuthService {
     required String senhaUsuario,
     required double lat,
     required double lng,
+    String tipoUsuario = 'cliente',
   }) async {
     final authResponse = await _supabase.auth.signUp(
       email: emailUsuario,
@@ -31,13 +53,17 @@ class AuthService {
       'telefone_usuario': telefoneUsuario,
       'lat': lat,
       'lng': lng,
+      'tipo_usuario': tipoUsuario,
     });
+
+    await salvarTokenPush(usuario.id);
 
     return UsuarioModel(
       id: usuario.id,
       nomeUsuario: nomeUsuario,
       emailUsuario: emailUsuario,
       telefoneUsuario: telefoneUsuario,
+      tipoUsuario: tipoUsuario,
       lat: lat,
       lng: lng,
     );
@@ -65,6 +91,10 @@ class AuthService {
         .select()
         .eq('id', usuario.id)
         .single();
+    
+    print('DEBUG LOGIN: Dados do utilizador: $dados');
+
+    await salvarTokenPush(usuario.id);
 
     return UsuarioModel(
       id: usuario.id,
@@ -72,7 +102,7 @@ class AuthService {
       emailUsuario: dados['email_usuario'],
       telefoneUsuario: dados['telefone_usuario'] ?? '',
       fotoUsuario: dados['foto_usuario'],
-      tipoUsuario: dados['tipo_usuario'],
+      tipoUsuario: dados['tipo_usuario'] ?? 'cliente',
       lat: Conversao.converterParaDouble(dados['lat']),
       lng: Conversao.converterParaDouble(dados['lng']),
     );
@@ -80,6 +110,20 @@ class AuthService {
 
   /// Termina a sessão do utilizador
   Future<void> logout() async {
+    try {
+      final usuarioAtual = _supabase.auth.currentUser;
+
+      if (usuarioAtual != null) {
+        // 1. Remover tokens push para parar notificações via Firebase
+        await _supabase
+            .from('tokens_push')
+            .delete()
+            .eq('utilizador_id', usuarioAtual.id);
+      }
+    } catch (e) {
+      print('Erro ao remover token no logout: $e');
+    }
+
     await _supabase.auth.signOut();
   }
 
@@ -93,6 +137,8 @@ class AuthService {
         .select()
         .eq('id', usuario.id)
         .single();
+    
+    print('DEBUG LOGIN: Dados do utilizador: $dados');
 
     return UsuarioModel(
       id: usuario.id,
@@ -100,7 +146,7 @@ class AuthService {
       emailUsuario: dados['email_usuario'],
       telefoneUsuario: dados['telefone_usuario'] ?? '',
       fotoUsuario: dados['foto_usuario'],
-      tipoUsuario: dados['tipo_usuario'],
+      tipoUsuario: dados['tipo_usuario'] ?? 'cliente',
       lat: Conversao.converterParaDouble(dados['lat']),
       lng: Conversao.converterParaDouble(dados['lng']),
     );

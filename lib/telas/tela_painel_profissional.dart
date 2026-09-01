@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../provedores/estado_global.dart';
 import '../servicos/auth_service.dart';
+import '../servicos/supabase_service.dart';
 import 'tela_novo_card.dart';
 import 'tela_meus_cards.dart';
 import 'tela_editar_perfil.dart';
 import 'tela_feed.dart';
 import 'tela_minhas_avaliacoes.dart';
+import 'tela_mensagens_profissional.dart';
+import '../main.dart';
 
 class TelaPainelProfissional extends StatelessWidget {
   const TelaPainelProfissional({super.key});
@@ -32,11 +35,13 @@ class TelaPainelProfissional extends StatelessWidget {
 
     if (confirmar == true) {
       await authService.logout();
+      pararNotificacoesTempoReal(); // Parar o stream global do Supabase
+
       if (context.mounted) {
         Provider.of<EstadoGlobal>(context, listen: false).limparUsuarioLogado();
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (_) => const TelaFeed()),
+          MaterialPageRoute(builder: (_) => TelaFeed()),
           (route) => false,
         );
       }
@@ -47,6 +52,8 @@ class TelaPainelProfissional extends StatelessWidget {
   Widget build(BuildContext context) {
     final estado = Provider.of<EstadoGlobal>(context);
     final usuario = estado.usuarioLogado;
+    final authService = AuthService();
+    final supabaseService = SupabaseService();
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -154,7 +161,7 @@ class TelaPainelProfissional extends StatelessWidget {
                   color: Colors.green,
                   onTap: () => Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(builder: (_) => const TelaFeed()),
+                    MaterialPageRoute(builder: (_) => TelaFeed()),
                     (route) => false,
                   ),
                 ),
@@ -171,6 +178,25 @@ class TelaPainelProfissional extends StatelessWidget {
                   label: 'Minhas\nAvaliações',
                   color: Colors.amber,
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaMinhasAvaliacoes())),
+                ),
+                Consumer<EstadoGlobal>(
+                  builder: (context, estado, child) {
+                    return _buildMenuButton(
+                      context,
+                      icon: Icons.chat_outlined,
+                      label: 'Minhas\nMensagens',
+                      color: Colors.redAccent,
+                      badgeCount: estado.totalConversasNaoLidas,
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaMensagensProfissional())).then((_) {
+                        // Ao voltar, recalcula para garantir sincronia se algo mudou
+                        if (usuario != null) {
+                          SupabaseService().obterTotalConversasNaoLidas(usuario.id).then((total) {
+                            estado.definirTotalConversasNaoLidas(total);
+                          });
+                        }
+                      }),
+                    );
+                  },
                 ),
               ],
             ),
@@ -199,7 +225,7 @@ class TelaPainelProfissional extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuButton(BuildContext context, {required IconData icon, required String label, required Color color, required VoidCallback onTap}) {
+  Widget _buildMenuButton(BuildContext context, {required IconData icon, required String label, required Color color, required VoidCallback onTap, int badgeCount = 0}) {
     return Material(
       color: Theme.of(context).cardColor,
       borderRadius: BorderRadius.circular(20),
@@ -215,16 +241,47 @@ class TelaPainelProfissional extends StatelessWidget {
               BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8, offset: const Offset(0, 4)),
             ],
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Stack(
             children: [
-              Icon(icon, size: 32, color: color),
-              const SizedBox(height: 12),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface),
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(icon, size: 32, color: color),
+                    const SizedBox(height: 12),
+                    Text(
+                      label,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface),
+                    ),
+                  ],
+                ),
               ),
+              if (badgeCount > 0)
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 22,
+                      minHeight: 22,
+                    ),
+                    child: Text(
+                      badgeCount > 9 ? '9+' : '$badgeCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

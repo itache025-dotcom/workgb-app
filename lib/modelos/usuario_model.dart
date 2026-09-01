@@ -31,7 +31,7 @@ class UsuarioModel {
         emailUsuario: json['email_usuario'] ?? '',
         telefoneUsuario: json['telefone_usuario'] ?? '',
         fotoUsuario: json['foto_usuario'],
-        tipoUsuario: json['tipo_usuario'],
+        tipoUsuario: json['tipo_usuario'] ?? 'cliente',
         lat: Conversao.converterParaDouble(json['lat']),
         lng: Conversao.converterParaDouble(json['lng']),
       );

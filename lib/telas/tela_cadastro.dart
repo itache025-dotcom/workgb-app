@@ -1,16 +1,22 @@
 import '../servicos/localizacao_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../provedores/estado_global.dart';
 import '../servicos/auth_service.dart';
+import '../servicos/supabase_service.dart';
 import '../servicos/validacao_service.dart';
+import '../main.dart';
 import 'tela_feed.dart';
+import 'tela_painel_profissional.dart';
 import '../servicos/responsividade.dart';
+import '../servicos/servico_erros.dart';
 
 /// Tela de cadastro do WorkGB
 /// Recolhe nome, email, telefone, senha e localização GPS do utilizador
 class TelaCadastro extends StatefulWidget {
-  const TelaCadastro({super.key});
+  final String tipoLogin;
+  const TelaCadastro({super.key, this.tipoLogin = 'cliente'});
 
   @override
   State<TelaCadastro> createState() => _TelaCadastroState();
@@ -70,6 +76,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
         senhaUsuario: _senhaController.text,
         lat: lat,
         lng: lng,
+        tipoUsuario: widget.tipoLogin,
       );
 
       // Guarda o utilizador no EstadoGlobal
@@ -78,25 +85,83 @@ class _TelaCadastroState extends State<TelaCadastro> {
         Provider.of<EstadoGlobal>(context, listen: false)
             .definirUsuarioLogado(usuario);
 
-        // Navega para a TelaFeed e remove todas as telas anteriores
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => const TelaFeed()),
-              (route) => false,
-        );
+        // Buscar notificações pendentes imediatamente após o registo (raro, mas possível)
+        _verificarNotificacoesPendentes(usuario.id);
+
+        if (usuario.tipoUsuario == 'profissional') {
+          // Navega para o Painel do Profissional
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => TelaPainelProfissional()),
+            (route) => false,
+          );
+        } else {
+          // Navega para a TelaFeed e remove todas as telas anteriores
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => TelaFeed()),
+            (route) => false,
+          );
+        }
       }
     } catch (e) {
       // Mostra erro se algo correr mal
       if (mounted) {
+        final mensagem = ServicoErros.obterMensagemAmigavel(e);
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro: ${e.toString().replaceFirst('Exception: ', '')}'),
+            content: Text(mensagem),
             backgroundColor: Colors.red,
           ),
         );
       }
     } finally {
       if (mounted) setState(() => _carregando = false);
+    }
+  }
+
+  /// Função que busca e mostra notificações pendentes acumuladas
+  Future<void> _verificarNotificacoesPendentes(String utilizadorId) async {
+    final supabaseService = SupabaseService();
+    
+    try {
+      print('DEBUG: Buscando pendentes no cadastro para: $utilizadorId');
+      final pendentes = await supabaseService.obterNotificacoesPendentes(utilizadorId);
+      print('DEBUG: Pendentes encontradas: ${pendentes.length}');
+
+      if (pendentes.isNotEmpty) {
+        for (final pendente in pendentes) {
+          print('DEBUG: Mostrando notificação pendente...');
+
+          const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+            'mensagens_channel',
+            'Mensagens',
+            channelDescription: 'Notificações de mensagens do WorkGB',
+            importance: Importance.max,
+            priority: Priority.high,
+            icon: '@mipmap/ic_launcher',
+          );
+
+          final NotificationDetails details = NotificationDetails(android: androidDetails);
+
+          await flutterLocalNotificationsPlugin.show(
+            DateTime.now().millisecondsSinceEpoch ~/ 1000,
+            pendente['titulo'].toString(),
+            pendente['mensagem'].toString(),
+            details,
+          );
+          
+          print('DEBUG: Notificação mostrada');
+
+          await supabaseService.apagarNotificacaoPendente(pendente['id']);
+          print('DEBUG: Pendente apagada');
+          
+          await Future.delayed(const Duration(seconds: 3));
+        }
+      }
+    } catch (e) {
+      print('Erro ao buscar notificações pendentes no cadastro: $e');
     }
   }
 
@@ -139,7 +204,9 @@ class _TelaCadastroState extends State<TelaCadastro> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Cria a tua conta',
+                  widget.tipoLogin == 'profissional'
+                      ? 'Cria conta como Profissional'
+                      : 'Cria a tua conta',
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 16,

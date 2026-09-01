@@ -8,7 +8,10 @@ import 'tela_perfil.dart';
 import 'tela_perfil_usuario.dart';
 import 'tela_login.dart';
 import 'tela_painel_profissional.dart';
+import 'tela_conversas.dart';
 import '../servicos/responsividade.dart';
+import 'tela_imagem_ampliada.dart';
+import 'tela_video_player.dart';
 
 final SupabaseService _supabaseService = SupabaseService();
 
@@ -88,7 +91,21 @@ class _TelaFeedState extends State<TelaFeed> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _carregarTrabalhadores();
+      _atualizarBadgeConversas();
     });
+  }
+
+  Future<void> _atualizarBadgeConversas() async {
+    final estado = Provider.of<EstadoGlobal>(context, listen: false);
+    if (!estado.estaLogado) return;
+
+    final usuario = estado.usuarioLogado!;
+    // Busca o total atualizado no servidor (Universal: Cliente ou Profissional)
+    final total = await _supabaseService.obterTotalConversasNaoLidas(usuario.id);
+    
+    if (mounted) {
+      estado.atualizarTotalConversas(total);
+    }
   }
 
   /// Carrega os trabalhadores do backend
@@ -120,6 +137,8 @@ class _TelaFeedState extends State<TelaFeed> {
       
       if (mounted) {
         estado.definirListaTrabalhadores(trabalhadores);
+        // Também atualiza os badges caso o utilizador tenha logado recentemente
+        _atualizarBadgeConversas();
       }
     } catch (e) {
       print('ERRO EXATO EM _carregarTrabalhadores: $e');
@@ -185,19 +204,46 @@ class _TelaFeedState extends State<TelaFeed> {
         elevation: 1,
         shadowColor: const Color(0xFF2563EB).withOpacity(0.1),
         actions: [
+          Consumer<EstadoGlobal>(
+            builder: (context, estado, child) {
+              print('DEBUG UI: Badge total no Feed: ${estado.totalConversasNaoLidas}');
+              return Badge(
+                label: Text('${estado.totalConversasNaoLidas}'),
+                isLabelVisible: estado.totalConversasNaoLidas > 0,
+                child: IconButton(
+                  icon: const Icon(Icons.chat_bubble_outline, color: Color(0xFF2563EB)),
+                  tooltip: 'Minhas Conversas',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const TelaConversas()),
+                    ).then((_) {
+                      // Recalcular ao voltar da tela de conversas caso tenha lido algo
+                      if (estado.estaLogado) {
+                        _atualizarBadgeConversas();
+                      }
+                    });
+                  },
+                ),
+              );
+            },
+          ),
           if (estado.estaLogado) ...[
-            IconButton(
-              icon: const Icon(Icons.dashboard_outlined, color: Color(0xFF2563EB)),
-              tooltip: 'Painel',
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const TelaPainelProfissional()),
-                );
-              },
-            ),
+            if (usuario?.tipoUsuario == 'profissional')
+              IconButton(
+                icon: const Icon(Icons.dashboard_outlined,
+                    color: Color(0xFF2563EB)),
+                tooltip: 'Painel',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => TelaPainelProfissional()),
+                  );
+                },
+              ),
             IconButton(
               icon: const Icon(Icons.account_circle, color: Color(0xFF2563EB)),
+              tooltip: 'Meu Perfil',
               onPressed: () {
                 Navigator.push(
                   context,
@@ -225,11 +271,14 @@ class _TelaFeedState extends State<TelaFeed> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const TelaLogin()),
+                    MaterialPageRoute(
+                      builder: (_) => const TelaLogin(tipoLogin: 'profissional'),
+                    ),
                   );
                 },
                 icon: const Icon(Icons.business_center, size: 18),
-                label: const Text('Profissional?', style: TextStyle(fontWeight: FontWeight.bold)),
+                label: const Text('Profissional?',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
                 style: TextButton.styleFrom(
                   foregroundColor: const Color(0xFF2563EB),
                   padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -238,24 +287,41 @@ class _TelaFeedState extends State<TelaFeed> {
             ),
         ],
       ),
-      floatingActionButton: !estado.estaLogado
-          ? null
-          : FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const TelaNovoCard()),
-          ).then((_) {
-            _carregarTrabalhadores();
-          });
-        },
-        backgroundColor: const Color(0xFF2563EB),
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text(
-          'Criar Card',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-        ),
-      ),
+      floatingActionButton: (estado.estaLogado && usuario?.tipoUsuario == 'profissional')
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TelaNovoCard()),
+                ).then((_) {
+                  _carregarTrabalhadores();
+                });
+              },
+              backgroundColor: const Color(0xFF2563EB),
+              icon: const Icon(Icons.add, color: Colors.white),
+              label: const Text(
+                'Criar Card',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+              ),
+            )
+          : (!estado.estaLogado || (estado.estaLogado && usuario?.tipoUsuario == 'cliente'))
+              ? FloatingActionButton.extended(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const TelaLogin(tipoLogin: 'profissional'),
+                      ),
+                    );
+                  },
+                  backgroundColor: const Color(0xFF2563EB),
+                  icon: const Icon(Icons.star, color: Colors.white),
+                  label: const Text(
+                    'Tornar-se Profissional',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                  ),
+                )
+              : null,
       body: _carregando
           ? const Center(
         child: CircularProgressIndicator(color: Color(0xFF2563EB)),
@@ -319,14 +385,31 @@ class _TelaFeedState extends State<TelaFeed> {
                       Expanded(
                         child: DropdownButtonFormField<String>(
                           value: _profissaoFiltro,
+                          isExpanded: true,
                           decoration: InputDecoration(
                             labelText: 'Profissão',
                             contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           ),
                           items: [
-                            const DropdownMenuItem(value: 'Todas', child: Text('Todas', style: TextStyle(fontSize: 12))),
-                            ...profissoesDisponiveis.map((p) => DropdownMenuItem(value: p, child: Text(p, style: const TextStyle(fontSize: 12)))),
+                            const DropdownMenuItem(
+                              value: 'Todas',
+                              child: Text(
+                                'Todas',
+                                style: TextStyle(fontSize: 12),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
+                            ...profissoesDisponiveis.map((p) => DropdownMenuItem(
+                                  value: p,
+                                  child: Text(
+                                    p,
+                                    style: const TextStyle(fontSize: 12),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                )),
                           ],
                           onChanged: (v) => setState(() => _profissaoFiltro = v!),
                         ),
@@ -335,14 +418,31 @@ class _TelaFeedState extends State<TelaFeed> {
                       Expanded(
                         child: DropdownButtonFormField<String>(
                           value: _bairroFiltro,
+                          isExpanded: true,
                           decoration: InputDecoration(
                             labelText: 'Bairro',
                             contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           ),
                           items: [
-                            const DropdownMenuItem(value: 'Todos', child: Text('Todos', style: TextStyle(fontSize: 12))),
-                            ...bairrosDisponiveis.map((b) => DropdownMenuItem(value: b, child: Text(b, style: const TextStyle(fontSize: 12)))),
+                            const DropdownMenuItem(
+                              value: 'Todos',
+                              child: Text(
+                                'Todos',
+                                style: TextStyle(fontSize: 12),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
+                            ...bairrosDisponiveis.map((b) => DropdownMenuItem(
+                                  value: b,
+                                  child: Text(
+                                    b,
+                                    style: const TextStyle(fontSize: 12),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                )),
                           ],
                           onChanged: (v) => setState(() => _bairroFiltro = v!),
                         ),
@@ -382,16 +482,45 @@ class _TelaFeedState extends State<TelaFeed> {
     );
   }
 
+  /// Abre a mídia (imagem ou vídeo) em tela cheia
+  void _abrirMidia(String url) {
+    final uri = url.toLowerCase();
+    if (uri.endsWith('.mp4') || uri.endsWith('.mov') || uri.endsWith('.avi')) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => TelaVideoPlayer(urlVideo: url)),
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => TelaImagemAmpliada(urlImagem: url)),
+      );
+    }
+  }
+
   /// Constrói um card de trabalhador estilo Pinterest
   Widget _buildCardTrabalhador(TrabalhadorModel trabalhador) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => TelaPerfil(trabalhador: trabalhador),
-          ),
-        );
+        final estado = Provider.of<EstadoGlobal>(context, listen: false);
+
+        if (!estado.estaLogado) {
+          // Redirecionar para login de cliente
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const TelaLogin(tipoLogin: 'cliente'),
+            ),
+          );
+        } else {
+          // Já logado — abre perfil normalmente
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => TelaPerfil(trabalhador: trabalhador),
+            ),
+          );
+        }
       },
       child: Container(
         decoration: BoxDecoration(
@@ -413,19 +542,22 @@ class _TelaFeedState extends State<TelaFeed> {
             Expanded(
               flex: 3,
               child: Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2563EB).withOpacity(0.1),
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                decoration: const BoxDecoration(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                 ),
                 child: ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                   child: trabalhador.fotoTrabalhador != null && trabalhador.fotoTrabalhador!.isNotEmpty
-                      ? Image.network(
-                    trabalhador.fotoTrabalhador!,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    errorBuilder: (_, __, ___) => _buildPlaceholderInicial(trabalhador),
-                  )
+                      ? GestureDetector(
+                          onTap: () => _abrirMidia(trabalhador.fotoTrabalhador!),
+                          child: Image.network(
+                            trabalhador.fotoTrabalhador!,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                            errorBuilder: (_, __, ___) => _buildPlaceholderInicial(trabalhador),
+                          ),
+                        )
                       : _buildPlaceholderInicial(trabalhador),
                 ),
               ),

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../provedores/estado_global.dart';
 import '../servicos/auth_service.dart';
 import '../servicos/validacao_service.dart';
+import '../servicos/servico_erros.dart';
 
 class TelaEditarPerfil extends StatefulWidget {
   const TelaEditarPerfil({super.key});
@@ -87,8 +88,10 @@ class _TelaEditarPerfilState extends State<TelaEditarPerfil> {
       }
     } catch (e) {
       if (mounted) {
+        final mensagem = ServicoErros.obterMensagemAmigavel(e, contexto: 'mudar_senha');
+
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro: ${e.toString().replaceFirst('Exception: ', '')}'), backgroundColor: Colors.red),
+          SnackBar(content: Text(mensagem), backgroundColor: Colors.red),
         );
       }
     } finally {

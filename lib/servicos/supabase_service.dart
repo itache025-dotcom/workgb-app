@@ -305,6 +305,422 @@ class SupabaseService {
     }
   }
 
+  // ---------- SISTEMA DE CHAT ----------
+
+  /// Enviar mensagem
+  Future<void> enviarMensagem({
+    required int trabalhadorId,
+    String? remetenteId,
+    String? remetenteNome,
+    required String mensagem,
+    String? clienteId, // ID do cliente na conversa
+    String tipo = 'texto',
+    String? urlMidia,
+    String? duracaoAudio,
+  }) async {
+    await _client.from('mensagens').insert({
+      'trabalhador_id': trabalhadorId,
+      'remetente_id': remetenteId,
+      'remetente_nome': remetenteNome ?? 'Anônimo',
+      'mensagem': mensagem,
+      'cliente_id': clienteId ?? remetenteId, // Se for o cliente a enviar, cliente_id = remetente_id
+      'estado': 'enviado',
+      'tipo': tipo,
+      'url_midia': urlMidia,
+      'duracao_audio': duracaoAudio,
+    });
+  }
+
+  /// Faz upload de uma mídia (foto ou vídeo) para o Storage e retorna o URL público
+  Future<String?> uploadMidia(String caminhoFicheiro, String tipo) async {
+    if (caminhoFicheiro.isEmpty) return null;
+
+    final ficheiro = File(caminhoFicheiro);
+    if (!await ficheiro.exists()) {
+      print('DEBUG STORAGE: Ficheiro não encontrado para upload: $caminhoFicheiro');
+      return null;
+    }
+
+    final nome = '${DateTime.now().millisecondsSinceEpoch}_${ficheiro.uri.pathSegments.last}';
+    final path = '$tipo/$nome';
+
+    await _client.storage
+        .from('chat_midia')
+        .upload(path, ficheiro);
+
+    // Constrói o URL público garantindo o uso do domínio correto do projeto
+    const String urlBase = 'https://kmtrhcuarprwovueqnmg.supabase.co';
+    final String url = '$urlBase/storage/v1/object/public/chat_midia/$path';
+    
+    print('DEBUG: URL da mídia gerada: $url');
+
+    return url;
+  }
+
+  /// Faz upload de um áudio para o Storage e retorna o URL público
+  Future<String?> uploadAudio(String caminhoFicheiro) async {
+    if (caminhoFicheiro.isEmpty) return null;
+
+    final ficheiro = File(caminhoFicheiro);
+    if (!await ficheiro.exists()) {
+      print('DEBUG AUDIO: Erro no upload - Ficheiro não existe em $caminhoFicheiro');
+      return null;
+    }
+
+    final nome = '${DateTime.now().millisecondsSinceEpoch}.m4a';
+
+    await _client.storage
+        .from('audios')
+        .upload('mensagens/$nome', ficheiro);
+
+    return _client.storage
+        .from('audios')
+        .getPublicUrl('mensagens/$nome');
+  }
+
+  /// Obter mensagens de um trabalhador e cliente específicos (conversa privada)
+  Future<List<Map<String, dynamic>>> obterMensagensPrivadas({
+    required int trabalhadorId,
+    required String clienteId,
+  }) async {
+    final response = await _client
+        .from('mensagens')
+        .select()
+        .eq('trabalhador_id', trabalhadorId)
+        .eq('cliente_id', clienteId)
+        .order('criado_em', ascending: true);
+
+    return List<Map<String, dynamic>>.from(response);
+  }
+
+  /// Obter cards que têm mensagens (para o profissional)
+  Future<List<Map<String, dynamic>>> obterCardsComMensagens(String utilizadorId) async {
+    // 1. Obter todos os cards do profissional
+    final responseCards = await _client
+        .from('trabalhadores')
+        .select('id, nome_trabalhador, profissao_trabalhador')
+        .eq('utilizador_id', utilizadorId);
+
+    final List<dynamic> cards = responseCards as List;
+    if (cards.isEmpty) return [];
+
+    final idsCards = cards.map((c) => c['id']).toList();
+
+    // 2. Buscar as mensagens mais recentes para esses cards
+    final responseMsgs = await _client
+        .from('mensagens')
+        .select('trabalhador_id, criado_em')
+        .inFilter('trabalhador_id', idsCards)
+        .order('criado_em', ascending: false);
+
+    final List<dynamic> msgs = responseMsgs as List;
+    if (msgs.isEmpty) return [];
+
+    // 3. Cruzar dados para retornar lista de cards com info de atividade
+    final resultado = <Map<String, dynamic>>[];
+    final idsProcessados = <int>{};
+
+    for (var card in cards) {
+      final cardId = card['id'];
+      final temAtividade = msgs.any((m) => m['trabalhador_id'] == cardId);
+      
+      if (temAtividade && !idsProcessados.contains(cardId)) {
+        idsProcessados.add(cardId);
+        resultado.add(card);
+      }
+    }
+
+    return resultado;
+  }
+
+  /// Obter lista de clientes que enviaram mensagens para um card específico
+  Future<List<Map<String, dynamic>>> obterClientesPorCard(int trabalhadorId) async {
+    print('DEBUG: Buscando clientes do card: $trabalhadorId');
+
+    // 1. Buscar todas as mensagens do card ordenadas por data
+    final response = await _client
+        .from('mensagens')
+        .select('cliente_id, mensagem, criado_em, lida, remetente_id, estado, tipo')
+        .eq('trabalhador_id', trabalhadorId)
+        .order('criado_em', ascending: false);
+
+    final List<dynamic> mensagens = response as List;
+    print('DEBUG: Total de mensagens encontradas: ${mensagens.length}');
+
+    final clientes = <Map<String, dynamic>>[];
+    final idsVistos = <String>{};
+
+    for (var msg in mensagens) {
+      final cId = msg['cliente_id']?.toString() ?? '';
+      if (cId.isEmpty || idsVistos.contains(cId)) continue;
+      
+      idsVistos.add(cId);
+
+      // 2. Buscar o nome real do cliente na tabela utilizadores (Garante precisão)
+      String nomeReal = 'Cliente';
+      try {
+        final dadosCliente = await _client
+            .from('utilizadores')
+            .select('nome_usuario')
+            .eq('id', cId)
+            .single();
+        nomeReal = dadosCliente['nome_usuario'] ?? 'Anônimo';
+      } catch (e) {
+        print('Erro ao buscar nome do cliente $cId: $e');
+      }
+
+      final tipo = msg['tipo'] ?? 'texto';
+      final ultimaMsg = tipo == 'texto' 
+          ? msg['mensagem'] 
+          : tipo == 'imagem' ? '📷 Imagem' : '🎥 Vídeo';
+
+      clientes.add({
+        'cliente_id': cId,
+        'nome_cliente': nomeReal,
+        'ultima_mensagem': ultimaMsg,
+        'criado_em': msg['criado_em'],
+        'lida': msg['lida'],
+        'remetente_id': msg['remetente_id'],
+        'estado': msg['estado'],
+      });
+    }
+
+    print('DEBUG: Clientes únicos identificados: ${clientes.length}');
+    return clientes;
+  }
+
+  /// Apagar mensagem
+  Future<void> apagarMensagem(int mensagemId) async {
+    await _client.from('mensagens').delete().eq('id', mensagemId);
+  }
+
+  /// Obter todas as mensagens recebidas por um profissional (legado, mantido por compatibilidade)
+  Future<List<Map<String, dynamic>>> obterMensagensPorProfissional(String utilizadorId) async {
+    try {
+      final responseCards = await _client
+          .from('trabalhadores')
+          .select('id')
+          .eq('utilizador_id', utilizadorId);
+
+      final List<dynamic> cards = responseCards as List;
+      final idsCards = cards.map((c) => c['id']).toList();
+
+      if (idsCards.isEmpty) return [];
+
+      final responseMensagens = await _client
+          .from('mensagens')
+          .select('*, trabalhadores(nome_trabalhador, profissao_trabalhador)')
+          .inFilter('trabalhador_id', idsCards)
+          .order('criado_em', ascending: false);
+
+      return List<Map<String, dynamic>>.from(responseMensagens);
+    } catch (e) {
+      print('Erro em obterMensagensPorProfissional: $e');
+      return [];
+    }
+  }
+
+  /// Obter todas as conversas iniciadas por um utilizador (Cliente)
+  Future<List<Map<String, dynamic>>> obterConversasCliente({String? utilizadorId}) async {
+    try {
+      if (utilizadorId == null) return [];
+
+      // Busca mensagens onde eu sou o cliente (mesmo se a última for do profissional)
+      final response = await _client
+          .from('mensagens')
+          .select('*, trabalhadores(id, nome_trabalhador, profissao_trabalhador, foto_trabalhador, utilizador_id, descricao_trabalhador)')
+          .eq('cliente_id', utilizadorId)
+          .order('criado_em', ascending: false);
+
+      final List<Map<String, dynamic>> lista = List<Map<String, dynamic>>.from(response);
+      
+      // Ajusta o texto da última mensagem se for mídia
+      for (var item in lista) {
+        final tipo = item['tipo'] ?? 'texto';
+        if (tipo != 'texto') {
+          item['mensagem'] = tipo == 'imagem' ? '📷 Imagem' : '🎥 Vídeo';
+        }
+      }
+
+      return lista;
+    } catch (e) {
+      print('Erro em obterConversasCliente: $e');
+      return [];
+    }
+  }
+
+  /// Obter total de mensagens não lidas do cliente (Universal)
+  Future<int> obterTotalMensagensNaoLidasCliente(String clienteId) async {
+    try {
+      final response = await _client
+          .from('mensagens')
+          .select('id')
+          .eq('cliente_id', clienteId)
+          .eq('lida', false)
+          .neq('remetente_id', clienteId);
+
+      return (response as List).length;
+    } catch (e) {
+      print('Erro em obterTotalMensagensNaoLidasCliente: $e');
+      return 0;
+    }
+  }
+
+  /// Obter total de conversas com mensagens não lidas para um utilizador (Universal)
+  Future<int> obterTotalConversasNaoLidas(String utilizadorId) async {
+    try {
+      print('DEBUG: Buscando total para: $utilizadorId');
+      
+      // Buscar mensagens onde o utilizador é cliente OU recetor
+      final response = await _client
+          .from('mensagens')
+          .select('cliente_id, remetente_id, trabalhador_id')
+          .or('cliente_id.eq.$utilizadorId,remetente_id.eq.$utilizadorId')
+          .eq('lida', false)
+          .neq('remetente_id', utilizadorId);
+
+      final List<dynamic> data = response as List;
+      print('DEBUG: Resposta bruta do total: $data');
+      
+      // Agrupar por conversa única (trabalhador_id + cliente_id)
+      final conversasUnicas = <String>{};
+      for (var m in data) {
+        final key = "${m['trabalhador_id']}_${m['cliente_id']}";
+        conversasUnicas.add(key);
+      }
+      
+      print('DEBUG: Total de conversas únicas não lidas: ${conversasUnicas.length}');
+      return conversasUnicas.length;
+    } catch (e) {
+      print('Erro em obterTotalConversasNaoLidas: $e');
+      return 0;
+    }
+  }
+
+  /// Obter número de mensagens não lidas numa conversa específica (Universal)
+  Future<int> obterMensagensNaoLidasConversa({
+    required int trabalhadorId,
+    required String clienteId,
+    required String utilizadorId,
+  }) async {
+    try {
+      final response = await _client
+          .from('mensagens')
+          .select('id')
+          .eq('trabalhador_id', trabalhadorId)
+          .eq('cliente_id', clienteId)
+          .eq('lida', false)
+          .neq('remetente_id', utilizadorId);
+
+      return (response as List).length;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  /// Obter número de clientes com mensagens não lidas por card
+  Future<int> obterClientesNaoLidosPorCard(int trabalhadorId, String utilizadorVisualizandoId) async {
+    try {
+      final response = await _client
+          .from('mensagens')
+          .select('cliente_id')
+          .eq('trabalhador_id', trabalhadorId)
+          .eq('lida', false)
+          .neq('remetente_id', utilizadorVisualizandoId) // Ignora mensagens do próprio utilizador
+          .order('criado_em', ascending: false);
+
+      final ids = (response as List).map((m) => m['cliente_id']).toSet();
+      return ids.length;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  /// Obter número de mensagens não lidas por conversa específica
+  Future<int> obterMensagensNaoLidas({
+    required int trabalhadorId,
+    required String clienteId,
+    required String utilizadorVisualizandoId,
+  }) async {
+    try {
+      final response = await _client
+          .from('mensagens')
+          .select('id')
+          .eq('trabalhador_id', trabalhadorId)
+          .eq('cliente_id', clienteId)
+          .eq('lida', false)
+          .neq('remetente_id', utilizadorVisualizandoId) // Ignora mensagens do próprio utilizador
+          .order('criado_em', ascending: false);
+
+      return (response as List).length;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  /// Marcar mensagens como lidas em uma conversa
+  Future<void> marcarComoLidas({
+    required int trabalhadorId,
+    required String clienteId,
+    required String utilizadorVisualizandoId,
+  }) async {
+    try {
+      print('DEBUG: Marcando como lidas — card: $trabalhadorId, cliente: $clienteId');
+      
+      // Marcamos como lida apenas as mensagens que NÃO foram enviadas pelo utilizador atual
+      final resposta = await _client
+          .from('mensagens')
+          .update({'lida': true, 'estado': 'lido'})
+          .eq('trabalhador_id', trabalhadorId)
+          .eq('cliente_id', clienteId)
+          .neq('remetente_id', utilizadorVisualizandoId)
+          .eq('lida', false)
+          .select();
+
+      print('DEBUG: Atualizadas: ${(resposta as List).length} mensagens como lidas');
+    } catch (e) {
+      print('Erro ao marcar mensagens como lidas: $e');
+    }
+  }
+
+  /// Atualiza o estado de uma mensagem específica (ex: para 'entregue')
+  Future<void> atualizarEstadoMensagem(int mensagemId, String novoEstado) async {
+    try {
+      await _client
+          .from('mensagens')
+          .update({'estado': novoEstado})
+          .eq('id', mensagemId);
+    } catch (e) {
+      print('Erro ao atualizar estado da mensagem: $e');
+    }
+  }
+
+  /// Obter notificações pendentes para um utilizador
+  Future<List<Map<String, dynamic>>> obterNotificacoesPendentes(String utilizadorId) async {
+    try {
+      final response = await _client
+          .from('notificacoes_pendentes')
+          .select()
+          .eq('recetor_id', utilizadorId)
+          .eq('lida', false)
+          .order('criado_em', ascending: true);
+
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      print('Erro em obterNotificacoesPendentes: $e');
+      return [];
+    }
+  }
+
+  /// Apagar notificação pendente após entrega
+  Future<void> apagarNotificacaoPendente(int id) async {
+    try {
+      await _client.from('notificacoes_pendentes').delete().eq('id', id);
+    } catch (e) {
+      print('Erro ao apagar notificação pendente: $e');
+    }
+  }
+
   double _calcularDistancia(double lat1, double lng1, double lat2, double lng2) {
     const double R = 6371.0;
     final dLat = _rad(lat2 - lat1);

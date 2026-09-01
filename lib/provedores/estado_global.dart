@@ -11,10 +11,14 @@ class EstadoGlobal extends ChangeNotifier {
   // ---------- LISTA DE TRABALHADORES ----------
   List<TrabalhadorModel> _listaTrabalhadores = [];
 
+  // ---------- MENSAGENS NÃO LIDAS ----------
+  int _totalConversasNaoLidas = 0;
+
   // ---------- GETTERS ----------
   UsuarioModel? get usuarioLogado => _usuarioLogado;
   bool get estaLogado => _estaLogado;
   List<TrabalhadorModel> get listaTrabalhadores => _listaTrabalhadores;
+  int get totalConversasNaoLidas => _totalConversasNaoLidas;
 
   // ---------- MÉTODOS DO UTILIZADOR ----------
 
@@ -30,6 +34,26 @@ class EstadoGlobal extends ChangeNotifier {
     _usuarioLogado = null;
     _estaLogado = false;
     _listaTrabalhadores = [];
+    _totalConversasNaoLidas = 0;
+    notifyListeners();
+  }
+
+  // ---------- MÉTODOS DAS MENSAGENS ----------
+
+  /// Atualiza o total de conversas com mensagens pendentes
+  void definirTotalConversasNaoLidas(int total) {
+    _totalConversasNaoLidas = total;
+    notifyListeners();
+  }
+
+  /// Alias para definirTotalConversasNaoLidas solicitado na tarefa
+  void atualizarTotalConversas(int total) {
+    _totalConversasNaoLidas = total;
+    notifyListeners();
+  }
+
+  /// Notifica os ouvintes para forçar atualização de badges nas listas
+  void dispararAtualizacaoListas() {
     notifyListeners();
   }
 

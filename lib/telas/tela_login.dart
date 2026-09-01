@@ -1,17 +1,23 @@
-import 'tela_cadastro.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'tela_cadastro.dart';
 import '../provedores/estado_global.dart';
 import '../servicos/auth_service.dart';
+import '../servicos/supabase_service.dart';
+import '../main.dart';
 import 'tela_painel_profissional.dart';
 import '../servicos/responsividade.dart';
+import '../servicos/servico_erros.dart';
 
 final AuthService _authService = AuthService();
 
 /// Tela de login do WorkGB
 /// Permite entrar com email ou telefone e senha
 class TelaLogin extends StatefulWidget {
-  const TelaLogin({super.key});
+  final String tipoLogin; // 'cliente' ou 'profissional'
+
+  const TelaLogin({super.key, this.tipoLogin = 'cliente'});
 
   @override
   State<TelaLogin> createState() => _TelaLoginState();
@@ -43,27 +49,101 @@ class _TelaLoginState extends State<TelaLogin> {
         senhaUsuario: _senhaController.text,
       );
 
+      print('DEBUG LOGIN: Tela de login: ${widget.tipoLogin}');
+      print('DEBUG LOGIN: Conta do usuário: ${usuario.tipoUsuario}');
+      print('DEBUG LOGIN: Coincidem? ${usuario.tipoUsuario == widget.tipoLogin}');
+
+      // LÓGICA DE BLOQUEIO: Se o tipo da conta NÃO coincide com o tipo da tela, NEGA o login
+      if (usuario.tipoUsuario != widget.tipoLogin) {
+        throw Exception('Esta conta não é de ${widget.tipoLogin}.');
+      }
+
       if (mounted) {
         Provider.of<EstadoGlobal>(context, listen: false)
             .definirUsuarioLogado(usuario);
 
-        // Navega para o Painel do Profissional
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const TelaPainelProfissional()),
-        );
+        // Buscar notificações pendentes imediatamente após login bem-sucedido
+        _verificarNotificacoesPendentes(usuario.id);
+
+        // Recalcular total de badges após login para sincronizar Provider
+        Future.delayed(const Duration(milliseconds: 500), () async {
+          final total = await SupabaseService().obterTotalConversasNaoLidas(usuario.id);
+          if (mounted) {
+            Provider.of<EstadoGlobal>(context, listen: false).atualizarTotalConversas(total);
+          }
+        });
+
+        if (usuario.tipoUsuario == 'profissional') {
+          // Navega para o Painel do Profissional
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => TelaPainelProfissional()),
+          );
+        } else {
+          // Navega para o Feed
+          Navigator.pop(context);
+        }
       }
     } catch (e) {
       if (mounted) {
+        final mensagem = ServicoErros.obterMensagemAmigavel(e);
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro: ${e.toString().replaceFirst('Exception: ', '')}'),
+            content: Text(mensagem),
             backgroundColor: Colors.red,
           ),
         );
       }
     } finally {
       if (mounted) setState(() => _carregando = false);
+    }
+  }
+
+  /// Função que busca e mostra notificações pendentes acumuladas enquanto offline
+  Future<void> _verificarNotificacoesPendentes(String utilizadorId) async {
+    final supabaseService = SupabaseService();
+    
+    try {
+      print('DEBUG: Buscando pendentes para: $utilizadorId');
+      final pendentes = await supabaseService.obterNotificacoesPendentes(utilizadorId);
+      print('DEBUG: Pendentes encontradas: ${pendentes.length}');
+
+      if (pendentes.isNotEmpty) {
+        for (final pendente in pendentes) {
+          print('DEBUG: Mostrando notificação pendente...');
+          
+          const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+            'mensagens_channel',
+            'Mensagens',
+            channelDescription: 'Notificações de mensagens do WorkGB',
+            importance: Importance.max,
+            priority: Priority.high,
+            icon: '@mipmap/ic_launcher',
+          );
+
+          final NotificationDetails details = NotificationDetails(android: androidDetails);
+
+          // Mostrar notificação local
+          await flutterLocalNotificationsPlugin.show(
+            DateTime.now().millisecondsSinceEpoch ~/ 1000,
+            pendente['titulo'].toString(),
+            pendente['mensagem'].toString(),
+            details,
+          );
+
+          print('DEBUG: Notificação mostrada');
+          
+          // Apagar do banco após mostrar
+          await supabaseService.apagarNotificacaoPendente(pendente['id']);
+          print('DEBUG: Pendente apagada');
+          
+          // Intervalo de 3 segundos entre notificações para o utilizador conseguir ler
+          await Future.delayed(const Duration(seconds: 3));
+        }
+      }
+    } catch (e) {
+      print('Erro ao buscar notificações pendentes no login: $e');
     }
   }
 
@@ -106,7 +186,9 @@ class _TelaLoginState extends State<TelaLogin> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Entra na tua conta',
+                      widget.tipoLogin == 'profissional'
+                          ? 'Entra como Profissional'
+                          : 'Entra na tua conta',
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 16,
@@ -203,10 +285,12 @@ class _TelaLoginState extends State<TelaLogin> {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const _TelaCadastroWrapper()),
+                          MaterialPageRoute(
+                            builder: (_) => _TelaCadastroWrapper(tipoLogin: widget.tipoLogin),
+                          ),
                         );
                       },
-                      child: const Text(
+                      child: Text(
                         'Ainda não tens conta? Cria uma',
                         style: TextStyle(
                           color: Color(0xFF2563EB),
@@ -227,10 +311,11 @@ class _TelaLoginState extends State<TelaLogin> {
 
 /// Wrapper que usa a TelaCadastro existente
 class _TelaCadastroWrapper extends StatelessWidget {
-  const _TelaCadastroWrapper();
+  final String tipoLogin;
+  const _TelaCadastroWrapper({required this.tipoLogin});
 
   @override
   Widget build(BuildContext context) {
-    return const TelaCadastro();
+    return TelaCadastro(tipoLogin: tipoLogin);
   }
 }

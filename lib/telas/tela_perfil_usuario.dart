@@ -4,6 +4,7 @@ import '../provedores/estado_global.dart';
 import '../servicos/auth_service.dart';
 import 'tela_editar_perfil.dart';
 import 'tela_feed.dart';
+import '../main.dart';
 
 /// Tela de perfil do utilizador logado
 /// Mostra dados e permite terminar sessão
@@ -36,13 +37,14 @@ class TelaPerfilUsuario extends StatelessWidget {
 
     if (confirmar == true) {
       await authService.logout();
+      pararNotificacoesTempoReal(); // Parar o stream global do Supabase
 
       if (context.mounted) {
         Provider.of<EstadoGlobal>(context, listen: false).limparUsuarioLogado();
 
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (_) => const TelaFeed()),
+          MaterialPageRoute(builder: (_) => TelaFeed()),
           (route) => false,
         );
       }
@@ -166,7 +168,7 @@ class TelaPerfilUsuario extends StatelessWidget {
                 onPressed: () {
                   Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(builder: (_) => const TelaFeed()),
+                    MaterialPageRoute(builder: (_) => TelaFeed()),
                     (route) => false,
                   );
                 },
