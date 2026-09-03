@@ -131,7 +131,7 @@ class _TelaMensagensProfissionalState extends State<TelaMensagensProfissional> {
               margin: const EdgeInsets.only(bottom: 12),
               child: ListTile(
                 leading: CircleAvatar(
-                  child: Text(cliente['nome_cliente'].substring(0, 1).toUpperCase()),
+                  child: Text((cliente['nome_cliente'] != null && cliente['nome_cliente'].toString().isNotEmpty) ? cliente['nome_cliente'].toString().substring(0, 1).toUpperCase() : '?'),
                 ),
                 title: Text(cliente['nome_cliente'], style: const TextStyle(fontWeight: FontWeight.bold)),
                 subtitle: Row(

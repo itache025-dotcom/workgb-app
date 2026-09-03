@@ -11,6 +11,13 @@ import 'servicos/auth_service.dart';
 import 'servicos/supabase_service.dart';
 import 'servicos/servico_atualizacao.dart';
 
+// Novos imports para teste visual
+import 'temas/cores_novo.dart';
+import 'temas/tema_novo.dart';
+import 'telas/tela_feed_novo.dart';
+import 'telas/tela_login_novo.dart';
+import 'telas/professional/tela_dashboard_novo.dart';
+
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
@@ -136,28 +143,10 @@ class WorkGBApp extends StatelessWidget {
       child: MaterialApp(
         title: 'WorkGB',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          brightness: Brightness.light,
-          fontFamily: 'Poppins',
-          scaffoldBackgroundColor: Colors.white,
-          cardColor: Colors.white,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF2563EB),
-            brightness: Brightness.light,
-          ),
-        ),
-        darkTheme: ThemeData(
-          brightness: Brightness.dark,
-          fontFamily: 'Poppins',
-          scaffoldBackgroundColor: const Color(0xFF121212),
-          cardColor: const Color(0xFF2A2D30),
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF2563EB),
-            brightness: Brightness.dark,
-          ),
-        ),
-        themeMode: ThemeMode.system,
-        home: RotaInicial(key: _rotaInicialKey),
+        theme: TemaNovo.lightTheme, // Usando o novo tema para teste
+        darkTheme: TemaNovo.darkTheme,
+        themeMode: ThemeMode.light,
+        home: const RotaInicialWrapper(),
       ),
     );
   }
@@ -376,27 +365,27 @@ class _RotaInicialState extends State<RotaInicial> {
   Widget build(BuildContext context) {
     if (_carregando) {
       return Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        body: const Center(
-          child: CircularProgressIndicator(color: Color(0xFF2563EB)),
+        body: Center(
+          child: CircularProgressIndicator(color: CoresNovo.navyPrimary),
         ),
       );
     }
 
     final estado = Provider.of<EstadoGlobal>(context);
-    final usuario = estado.usuarioLogado;
-
-    if (estado.estaLogado && usuario != null) {
-      // Garante que o Realtime está ouvindo após login manual
-      _configurarNotificacoesTempoReal(usuario.id);
-      
-      if (usuario.tipoUsuario == 'profissional') {
-        return const TelaPainelProfissional();
-      } else {
-        return const TelaFeed();
-      }
-    } else {
-      return const TelaFeed();
+    
+    if (estado.modoProfissional) {
+      return const TelaDashboardNovo();
     }
+    
+    return const TelaFeedNovo();
+  }
+}
+
+class RotaInicialWrapper extends StatelessWidget {
+  const RotaInicialWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const RotaInicial();
   }
 }

@@ -63,7 +63,12 @@ class SupabaseService {
             documentos: dados['documentos'] != null 
                 ? List<String>.from(dados['documentos']) 
                 : [],
+            galeria: dados['galeria'] != null 
+                ? List<String>.from(dados['galeria']) 
+                : [],
             utilizadorId: dados['utilizador_id']?.toString(),
+            mediaAvaliacoes: (dados['media_avaliacoes'] as num?)?.toDouble() ?? 0.0,
+            totalAvaliacoes: (dados['total_avaliacoes'] as num?)?.toInt() ?? 0,
           );
           lista.add(trabalhador);
         } catch (e) {
@@ -92,6 +97,7 @@ class SupabaseService {
     String? disponibilidadeInicio,
     String? disponibilidadeFim,
     List<String> documentos = const [],
+    List<String> galeria = const [],
   }) async {
     await _client.from('trabalhadores').insert({
       'nome_trabalhador': nomeTrabalhador,
@@ -105,6 +111,7 @@ class SupabaseService {
       'disponibilidade_inicio': disponibilidadeInicio,
       'disponibilidade_fim': disponibilidadeFim,
       'documentos': documentos,
+      'galeria': galeria,
     });
   }
 
@@ -137,7 +144,12 @@ class SupabaseService {
         documentos: dados['documentos'] != null 
             ? List<String>.from(dados['documentos']) 
             : [],
+        galeria: dados['galeria'] != null 
+            ? List<String>.from(dados['galeria']) 
+            : [],
         utilizadorId: dados['utilizador_id']?.toString(),
+        mediaAvaliacoes: (dados['media_avaliacoes'] as num?)?.toDouble() ?? 0.0,
+        totalAvaliacoes: (dados['total_avaliacoes'] as num?)?.toInt() ?? 0,
       ));
     }
     
@@ -155,6 +167,7 @@ class SupabaseService {
     String? disponibilidadeInicio,
     String? disponibilidadeFim,
     List<String>? documentos,
+    List<String>? galeria,
   }) async {
     final Map<String, dynamic> dadosParaAtualizar = {
       'nome_trabalhador': nomeTrabalhador,
@@ -176,6 +189,9 @@ class SupabaseService {
     }
     if (documentos != null) {
       dadosParaAtualizar['documentos'] = documentos;
+    }
+    if (galeria != null) {
+      dadosParaAtualizar['galeria'] = galeria;
     }
 
     await _client.from('trabalhadores').update(dadosParaAtualizar).eq('id', id);
@@ -214,6 +230,111 @@ class SupabaseService {
       urls.add(_client.storage.from('documentos').getPublicUrl('documentos/$nome'));
     }
     return urls;
+  }
+
+  /// Upload de foto para a galeria
+  Future<String> uploadFotoGaleria(File ficheiro) async {
+    final nome = '${DateTime.now().millisecondsSinceEpoch}_galeria.jpg';
+    await _client.storage.from('fotos').upload('galeria/$nome', ficheiro);
+    return _client.storage.from('fotos').getPublicUrl('galeria/$nome');
+  }
+
+  /// Adicionar foto à lista da galeria no banco
+  Future<void> adicionarFotoGaleria(String trabalhadorId, String url) async {
+    final response = await _client.from('trabalhadores')
+        .select('galeria')
+        .eq('id', trabalhadorId)
+        .single();
+    
+    final galeria = List<String>.from(response['galeria'] ?? []);
+    galeria.add(url);
+    
+    await _client.from('trabalhadores')
+        .update({'galeria': galeria})
+        .eq('id', trabalhadorId);
+  }
+
+  /// Remover foto da galeria
+  Future<void> removerFotoGaleria(String trabalhadorId, String url) async {
+    final response = await _client.from('trabalhadores')
+        .select('galeria')
+        .eq('id', trabalhadorId)
+        .single();
+    
+    final galeria = List<String>.from(response['galeria'] ?? []);
+    galeria.remove(url);
+    
+    await _client.from('trabalhadores')
+        .update({'galeria': galeria})
+        .eq('id', trabalhadorId);
+  }
+
+  /// Verificar se um utilizador já tem perfil de profissional (pelo menos um card)
+  Future<bool> verificarSeProfissional(String utilizadorId) async {
+    try {
+      final response = await _client
+          .from('trabalhadores')
+          .select('id')
+          .eq('utilizador_id', utilizadorId)
+          .limit(1);
+      
+      return (response as List).isNotEmpty;
+    } catch (e) {
+      print('Erro ao verificar se profissional: $e');
+      return false;
+    }
+  }
+
+  /// Atualizar foto de perfil do utilizador
+  Future<void> atualizarFotoPerfil(String utilizadorId, String url) async {
+    await _client.from('utilizadores')
+        .update({'foto_usuario': url})
+        .eq('id', utilizadorId);
+  }
+
+  /// Atualizar profissão do utilizador
+  Future<void> atualizarProfissao(String utilizadorId, String profissao) async {
+    await _client.from('utilizadores')
+        .update({'profissao': profissao})
+        .eq('id', utilizadorId);
+  }
+
+  /// Incrementar contador de visualizações de um card (via RPC)
+  Future<void> incrementarVisualizacao(String trabalhadorId) async {
+    print('DEBUG VISUALIZACAO: Iniciando para card $trabalhadorId');
+    try {
+      final tId = int.parse(trabalhadorId);
+      final resultado = await _client.rpc('increment_view', params: {'row_id': tId});
+      print('DEBUG VISUALIZACAO: RPC sucesso. Resultado: $resultado');
+    } catch (e) {
+      print('DEBUG VISUALIZACAO ERRO: $e');
+    }
+  }
+
+  /// Obter estatísticas (visualizações e contactos) para uma lista de cards
+  Future<Map<String, int>> obterEstatisticas(List<int> idsCards) async {
+    try {
+      if (idsCards.isEmpty) return {'visualizacoes': 0, 'contactos': 0};
+
+      final response = await _client
+          .from('estatisticas')
+          .select('visualizacoes, contactos')
+          .inFilter('trabalhador_id', idsCards);
+      
+      final List<dynamic> data = response as List;
+      int vis = 0;
+      int con = 0;
+
+      for (var item in data) {
+        vis += (item['visualizacoes'] as int? ?? 0);
+        con += (item['contactos'] as int? ?? 0);
+      }
+
+      return {'visualizacoes': vis, 'contactos': con};
+    } catch (e) {
+      print('Erro ao obter estatísticas: $e');
+      return {'visualizacoes': 0, 'contactos': 0};
+    }
   }
 
   // ---------- SISTEMA DE AVALIAÇÕES ----------
@@ -376,6 +497,74 @@ class SupabaseService {
     return _client.storage
         .from('audios')
         .getPublicUrl('mensagens/$nome');
+  }
+
+  /// Obter todas as conversas do utilizador (como cliente ou profissional)
+  Future<List<Map<String, dynamic>>> obterConversas(String utilizadorId) async {
+    try {
+      // 1. Buscar os IDs dos cards do profissional
+      final cards = await _client.from('trabalhadores').select('id').eq('utilizador_id', utilizadorId);
+      final idsCards = (cards as List).map((c) => c['id']).toList();
+      
+      // 2. Construir o filtro: Mensagens onde sou o cliente OU onde o card destino é meu
+      String filtro = 'cliente_id.eq.$utilizadorId';
+      if (idsCards.isNotEmpty) {
+        filtro += ',trabalhador_id.in.(${idsCards.join(",")})';
+      }
+
+      final response = await _client
+          .from('mensagens')
+          .select('*, trabalhadores(id, nome_trabalhador, profissao_trabalhador, foto_trabalhador, utilizador_id, descricao_trabalhador)')
+          .or(filtro)
+          .order('criado_em', ascending: false);
+      
+      final todasMensagens = List<Map<String, dynamic>>.from(response);
+      
+      // 3. Agrupar por conversa única (trabalhador_id + cliente_id)
+      final Map<String, Map<String, dynamic>> conversasMap = {};
+      for (var msg in todasMensagens) {
+        final key = "${msg['trabalhador_id']}_${msg['cliente_id']}";
+        if (!conversasMap.containsKey(key)) {
+          final isProfessionalRole = msg['trabalhadores']['utilizador_id'] == utilizadorId;
+          
+          String displayNome = 'Cliente';
+          String? displayFoto;
+
+          if (isProfessionalRole) {
+            // Sou o profissional: O título deve ser o nome do cliente
+            if (msg['remetente_id'] != utilizadorId) {
+              displayNome = msg['remetente_nome'] ?? 'Cliente';
+            } else {
+              // Se a última mensagem foi minha, procurar o nome do cliente em mensagens anteriores
+              try {
+                final clientMsg = todasMensagens.firstWhere(
+                  (m) => "${m['trabalhador_id']}_${m['cliente_id']}" == key && m['remetente_id'] != utilizadorId,
+                );
+                displayNome = clientMsg['remetente_nome'] ?? 'Cliente';
+              } catch (e) {
+                displayNome = 'Cliente';
+              }
+            }
+          } else {
+            // Sou o cliente: O título deve ser o nome do profissional/card
+            displayNome = msg['trabalhadores']['nome_trabalhador'] ?? 'Profissional';
+            displayFoto = msg['trabalhadores']['foto_trabalhador'];
+          }
+
+          conversasMap[key] = {
+            ...msg,
+            'display_nome': displayNome,
+            'display_foto': displayFoto,
+          };
+        }
+      }
+
+      print('DEBUG CONVERSAS: Encontradas ${conversasMap.length} conversas únicas para o utilizador $utilizadorId');
+      return conversasMap.values.toList();
+    } catch (e) {
+      print('ERRO EM obterConversas: $e');
+      return [];
+    }
   }
 
   /// Obter mensagens de um trabalhador e cliente específicos (conversa privada)
@@ -569,18 +758,27 @@ class SupabaseService {
   /// Obter total de conversas com mensagens não lidas para um utilizador (Universal)
   Future<int> obterTotalConversasNaoLidas(String utilizadorId) async {
     try {
-      print('DEBUG: Buscando total para: $utilizadorId');
+      // 1. Buscar os IDs dos cards do profissional
+      final cards = await _client.from('trabalhadores')
+          .select('id')
+          .eq('utilizador_id', utilizadorId);
       
-      // Buscar mensagens onde o utilizador é cliente OU recetor
+      final idsCards = (cards as List).map((c) => c['id']).toList();
+      
+      // 2. Construir o filtro: Mensagens destinadas ao utilizador (como cliente ou dono do card)
+      String filtro = 'cliente_id.eq.$utilizadorId';
+      if (idsCards.isNotEmpty) {
+        filtro += ',trabalhador_id.in.(${idsCards.join(",")})';
+      }
+
       final response = await _client
           .from('mensagens')
-          .select('cliente_id, remetente_id, trabalhador_id')
-          .or('cliente_id.eq.$utilizadorId,remetente_id.eq.$utilizadorId')
+          .select('cliente_id, trabalhador_id')
+          .or(filtro)
           .eq('lida', false)
           .neq('remetente_id', utilizadorId);
 
       final List<dynamic> data = response as List;
-      print('DEBUG: Resposta bruta do total: $data');
       
       // Agrupar por conversa única (trabalhador_id + cliente_id)
       final conversasUnicas = <String>{};
@@ -589,7 +787,7 @@ class SupabaseService {
         conversasUnicas.add(key);
       }
       
-      print('DEBUG: Total de conversas únicas não lidas: ${conversasUnicas.length}');
+      print('DEBUG: Total de conversas únicas não lidas para $utilizadorId: ${conversasUnicas.length}');
       return conversasUnicas.length;
     } catch (e) {
       print('Erro em obterTotalConversasNaoLidas: $e');

@@ -9,13 +9,17 @@ import '../servicos/imagem_service.dart';
 import 'package:file_picker/file_picker.dart';
 import '../servicos/responsividade.dart';
 
+import '../servicos/auth_service.dart';
+import 'professional/tela_dashboard_novo.dart';
+
 final SupabaseService _supabaseService = SupabaseService();
 
 
 /// Tela profissional para criar um novo card de trabalhador
 /// Com nome, foto, profissão, bairro, telefone e descrição
 class TelaNovoCard extends StatefulWidget {
-  const TelaNovoCard({super.key});
+  final bool tornarProfissional;
+  const TelaNovoCard({super.key, this.tornarProfissional = false});
 
 
   @override
@@ -242,21 +246,37 @@ class _TelaNovoCardState extends State<TelaNovoCard> {
         documentos: documentosUrls,
       ).timeout(const Duration(seconds: 20));
 
+      if (widget.tornarProfissional) {
+        estado.ativarModoProfissional();
+        AuthService().atualizarModoUtilizacao(estado.usuarioLogado!.id, true);
+      }
+
       if (mounted) {
         showDialog(
           context: context,
+          barrierDismissible: false,
           builder: (ctx) => AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             icon: const Icon(Icons.check_circle, color: Color(0xFF2563EB), size: 56),
             title: const Text('Card Publicado!'),
-            content: const Text('O teu card foi publicado com sucesso e já está disponível para todos.'),
+            content: Text(widget.tornarProfissional 
+                ? 'Perfil profissional configurado com sucesso. Bem-vindo ao painel!' 
+                : 'O teu card foi publicado com sucesso e já está disponível para todos.'),
             actions: [
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.pop(ctx);
-                    Navigator.pop(context, true);
+                    if (widget.tornarProfissional) {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (_) => const TelaDashboardNovo()),
+                        (route) => false,
+                      );
+                    } else {
+                      Navigator.pop(context, true);
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2563EB),

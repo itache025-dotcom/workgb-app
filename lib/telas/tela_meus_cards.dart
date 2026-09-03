@@ -149,46 +149,65 @@ class _TelaMeusCardsState extends State<TelaMeusCards> {
           ),
         ],
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(12),
-        leading: CircleAvatar(
-          radius: 28,
-          backgroundColor: const Color(0xFF2563EB),
-          backgroundImage: card.fotoTrabalhador != null && card.fotoTrabalhador!.isNotEmpty
-              ? NetworkImage(card.fotoTrabalhador!)
-              : null,
-          child: card.fotoTrabalhador == null || card.fotoTrabalhador!.isEmpty
-              ? Text(card.nomeTrabalhador.substring(0, 1).toUpperCase(),
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))
-              : null,
-        ),
-        title: Text(card.nomeTrabalhador,
-            style: TextStyle(fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface)),
-        subtitle: Text(card.profissaoTrabalhador,
-            style: const TextStyle(color: Color(0xFF2563EB), fontSize: 12)),
-        trailing: PopupMenuButton<String>(
-          onSelected: (value) {
-            if (value == 'editar') {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => TelaEditarCard(card: card)),
-              ).then((_) => _carregarCards());
-            } else if (value == 'eliminar') {
-              _eliminarCard(card);
-            }
-          },
-          itemBuilder: (_) => [
-            const PopupMenuItem(value: 'editar', child: Row(children: [
-              Icon(Icons.edit, color: Color(0xFF2563EB), size: 20),
-              SizedBox(width: 8),
-              Text('Editar'),
-            ])),
-            const PopupMenuItem(value: 'eliminar', child: Row(children: [
-              Icon(Icons.delete, color: Colors.red, size: 20),
-              SizedBox(width: 8),
-              Text('Eliminar', style: TextStyle(color: Colors.red)),
-            ])),
-          ],
+      child: Material(
+        color: Colors.transparent,
+        child: ListTile(
+          contentPadding: const EdgeInsets.all(12),
+          leading: CircleAvatar(
+            radius: 28,
+            backgroundColor: const Color(0xFF2563EB),
+            backgroundImage: card.fotoTrabalhador != null && card.fotoTrabalhador!.isNotEmpty
+                ? NetworkImage(card.fotoTrabalhador!)
+                : null,
+            child: card.fotoTrabalhador == null || card.fotoTrabalhador!.isEmpty
+                ? Text(
+                    card.nomeTrabalhador.substring(0, 1).toUpperCase(),
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  )
+                : null,
+          ),
+          title: Text(
+            card.nomeTrabalhador,
+            style: TextStyle(fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface),
+          ),
+          subtitle: Text(
+            card.profissaoTrabalhador,
+            style: const TextStyle(color: Color(0xFF2563EB), fontSize: 12),
+          ),
+          trailing: PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'editar') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => TelaEditarCard(card: card)),
+                ).then((_) => _carregarCards());
+              } else if (value == 'eliminar') {
+                _eliminarCard(card);
+              }
+            },
+            itemBuilder: (_) => [
+              const PopupMenuItem(
+                value: 'editar',
+                child: Row(
+                  children: [
+                    Icon(Icons.edit, color: Color(0xFF2563EB), size: 20),
+                    SizedBox(width: 8),
+                    Text('Editar'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'eliminar',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete, color: Colors.red, size: 20),
+                    SizedBox(width: 8),
+                    Text('Eliminar', style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

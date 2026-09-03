@@ -8,8 +8,10 @@ class UsuarioModel {
   final String telefoneUsuario;
   final String? fotoUsuario;
   final String? tipoUsuario;
+  final String? profissao;
   final double? lat;
   final double? lng;
+  final bool modoProfissional;
 
   UsuarioModel({
     required this.id,
@@ -18,8 +20,10 @@ class UsuarioModel {
     required this.telefoneUsuario,
     this.fotoUsuario,
     this.tipoUsuario,
+    this.profissao,
     this.lat,
     this.lng,
+    this.modoProfissional = false,
   });
 
   /// Converte JSON do backend para um objeto UsuarioModel
@@ -32,8 +36,10 @@ class UsuarioModel {
         telefoneUsuario: json['telefone_usuario'] ?? '',
         fotoUsuario: json['foto_usuario'],
         tipoUsuario: json['tipo_usuario'] ?? 'cliente',
+        profissao: json['profissao'],
         lat: Conversao.converterParaDouble(json['lat']),
         lng: Conversao.converterParaDouble(json['lng']),
+        modoProfissional: json['modo_profissional'] ?? false,
       );
     } catch (e) {
       print('ERRO EM UsuarioModel.fromJson: $e');
@@ -50,8 +56,10 @@ class UsuarioModel {
       'telefone_usuario': telefoneUsuario,
       'foto_usuario': fotoUsuario,
       'tipo_usuario': tipoUsuario,
+      'profissao': profissao,
       'lat': lat,
       'lng': lng,
+      'modo_profissional': modoProfissional,
     };
   }
 }

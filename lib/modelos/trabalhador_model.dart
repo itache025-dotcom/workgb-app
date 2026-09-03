@@ -14,8 +14,9 @@ class TrabalhadorModel {
   final String? disponibilidadeInicio;
   final String? disponibilidadeFim;
   final List<String> documentos;
-  final double mediaAvaliacoes;
-  final int totalAvaliacoes;
+  final List<String> galeria;
+  double mediaAvaliacoes;
+  int totalAvaliacoes;
   final String? utilizadorId;
 
   TrabalhadorModel({
@@ -31,6 +32,7 @@ class TrabalhadorModel {
     this.disponibilidadeInicio,
     this.disponibilidadeFim,
     this.documentos = const [],
+    this.galeria = const [],
     this.mediaAvaliacoes = 0.0,
     this.totalAvaliacoes = 0,
     this.utilizadorId,
@@ -52,6 +54,10 @@ class TrabalhadorModel {
         disponibilidadeInicio: json['disponibilidade_inicio'],
         disponibilidadeFim: json['disponibilidade_fim'],
         documentos: List<String>.from(json['documentos'] ?? []),
+        galeria: List<String>.from(json['galeria'] ?? []),
+        mediaAvaliacoes: (json['media_avaliacoes'] as num?)?.toDouble() ?? 0.0,
+        totalAvaliacoes: (json['total_avaliacoes'] as num?)?.toInt() ?? 0,
+        utilizadorId: json['utilizador_id']?.toString(),
       );
     } catch (e) {
       print('ERRO EM TrabalhadorModel.fromJson: $e');
@@ -74,6 +80,10 @@ class TrabalhadorModel {
       'disponibilidade_inicio': disponibilidadeInicio,
       'disponibilidade_fim': disponibilidadeFim,
       'documentos': documentos,
+      'galeria': galeria,
+      'media_avaliacoes': mediaAvaliacoes,
+      'total_avaliacoes': totalAvaliacoes,
+      'utilizador_id': utilizadorId,
     };
   }
 }

@@ -6,7 +6,7 @@ import '../modelos/trabalhador_model.dart';
 class EstadoGlobal extends ChangeNotifier {
   // ---------- ESTADO DO UTILIZADOR ----------
   UsuarioModel? _usuarioLogado;
-  bool _estaLogado = false;
+  bool _estaLogado = false; 
 
   // ---------- LISTA DE TRABALHADORES ----------
   List<TrabalhadorModel> _listaTrabalhadores = [];
@@ -14,11 +14,15 @@ class EstadoGlobal extends ChangeNotifier {
   // ---------- MENSAGENS NÃO LIDAS ----------
   int _totalConversasNaoLidas = 0;
 
+  // ---------- MODO DE UTILIZAÇÃO ----------
+  bool _modoProfissional = false;
+
   // ---------- GETTERS ----------
   UsuarioModel? get usuarioLogado => _usuarioLogado;
   bool get estaLogado => _estaLogado;
   List<TrabalhadorModel> get listaTrabalhadores => _listaTrabalhadores;
   int get totalConversasNaoLidas => _totalConversasNaoLidas;
+  bool get modoProfissional => _modoProfissional;
 
   // ---------- MÉTODOS DO UTILIZADOR ----------
 
@@ -26,6 +30,7 @@ class EstadoGlobal extends ChangeNotifier {
   void definirUsuarioLogado(UsuarioModel usuario) {
     _usuarioLogado = usuario;
     _estaLogado = true;
+    _modoProfissional = usuario.modoProfissional;
     notifyListeners();
   }
 
@@ -35,6 +40,19 @@ class EstadoGlobal extends ChangeNotifier {
     _estaLogado = false;
     _listaTrabalhadores = [];
     _totalConversasNaoLidas = 0;
+    _modoProfissional = false;
+    notifyListeners();
+  }
+
+  /// Alterna entre modo cliente e profissional
+  void alternarModo() {
+    _modoProfissional = !_modoProfissional;
+    notifyListeners();
+  }
+
+  /// Ativa explicitamente o modo profissional
+  void ativarModoProfissional() {
+    _modoProfissional = true;
     notifyListeners();
   }
 

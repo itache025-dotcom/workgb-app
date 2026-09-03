@@ -100,7 +100,7 @@ class TelaPainelProfissional extends StatelessWidget {
                     radius: 32,
                     backgroundColor: Colors.white.withOpacity(0.2),
                     child: Text(
-                      usuario?.nomeUsuario.substring(0, 1).toUpperCase() ?? 'P',
+                      (usuario?.nomeUsuario != null && usuario!.nomeUsuario.isNotEmpty) ? usuario.nomeUsuario.substring(0, 1).toUpperCase() : 'P',
                       style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                   ),
@@ -110,7 +110,7 @@ class TelaPainelProfissional extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Olá, ${usuario?.nomeUsuario.split(' ')[0] ?? 'Profissional'}!',
+                          'Olá, ${(usuario?.nomeUsuario != null && usuario!.nomeUsuario.isNotEmpty) ? usuario.nomeUsuario.split(' ')[0] : 'Profissional'}!',
                           style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                         ),
                         const Text(

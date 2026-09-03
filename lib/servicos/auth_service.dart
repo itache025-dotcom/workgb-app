@@ -54,6 +54,7 @@ class AuthService {
       'lat': lat,
       'lng': lng,
       'tipo_usuario': tipoUsuario,
+      'modo_profissional': tipoUsuario == 'profissional',
     });
 
     await salvarTokenPush(usuario.id);
@@ -66,6 +67,7 @@ class AuthService {
       tipoUsuario: tipoUsuario,
       lat: lat,
       lng: lng,
+      modoProfissional: tipoUsuario == 'profissional',
     );
   }
 
@@ -103,8 +105,10 @@ class AuthService {
       telefoneUsuario: dados['telefone_usuario'] ?? '',
       fotoUsuario: dados['foto_usuario'],
       tipoUsuario: dados['tipo_usuario'] ?? 'cliente',
+      profissao: dados['profissao'],
       lat: Conversao.converterParaDouble(dados['lat']),
       lng: Conversao.converterParaDouble(dados['lng']),
+      modoProfissional: dados['modo_profissional'] ?? false,
     );
   }
 
@@ -147,8 +151,10 @@ class AuthService {
       telefoneUsuario: dados['telefone_usuario'] ?? '',
       fotoUsuario: dados['foto_usuario'],
       tipoUsuario: dados['tipo_usuario'] ?? 'cliente',
+      profissao: dados['profissao'],
       lat: Conversao.converterParaDouble(dados['lat']),
       lng: Conversao.converterParaDouble(dados['lng']),
+      modoProfissional: dados['modo_profissional'] ?? false,
     );
   }
 
@@ -172,6 +178,13 @@ class AuthService {
       'nome_usuario': nomeUsuario,
       'email_usuario': emailUsuario,
       'telefone_usuario': telefoneUsuario,
+    }).eq('id', id);
+  }
+
+  /// Atualiza o modo de utilização (Cliente vs Profissional)
+  Future<void> atualizarModoUtilizacao(String id, bool modoProfissional) async {
+    await _supabase.from('utilizadores').update({
+      'modo_profissional': modoProfissional,
     }).eq('id', id);
   }
 
