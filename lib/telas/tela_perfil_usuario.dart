@@ -139,7 +139,7 @@ class TelaPerfilUsuario extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const TelaEditarPerfil()),
+                    MaterialPageRoute(builder: (_) => TelaEditarPerfil()),
                   );
                 },
                 icon: const Icon(Icons.edit, color: Colors.white),

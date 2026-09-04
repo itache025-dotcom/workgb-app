@@ -216,7 +216,7 @@ class _TelaFeedState extends State<TelaFeed> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const TelaConversas()),
+                      MaterialPageRoute(builder: (_) => TelaConversas()),
                     ).then((_) {
                       // Recalcular ao voltar da tela de conversas caso tenha lido algo
                       if (estado.estaLogado) {
@@ -247,7 +247,7 @@ class _TelaFeedState extends State<TelaFeed> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const TelaPerfilUsuario()),
+                  MaterialPageRoute(builder: (_) => TelaPerfilUsuario()),
                 );
               },
             ),
@@ -272,7 +272,7 @@ class _TelaFeedState extends State<TelaFeed> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const TelaLogin(tipoLogin: 'profissional'),
+                      builder: (_) => TelaLogin(tipoLogin: 'profissional'),
                     ),
                   );
                 },
@@ -292,7 +292,7 @@ class _TelaFeedState extends State<TelaFeed> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const TelaNovoCard()),
+                  MaterialPageRoute(builder: (_) => TelaNovoCard()),
                 ).then((_) {
                   _carregarTrabalhadores();
                 });
@@ -310,7 +310,7 @@ class _TelaFeedState extends State<TelaFeed> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const TelaLogin(tipoLogin: 'profissional'),
+                        builder: (_) => TelaLogin(tipoLogin: 'profissional'),
                       ),
                     );
                   },
@@ -509,7 +509,7 @@ class _TelaFeedState extends State<TelaFeed> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => const TelaLogin(tipoLogin: 'cliente'),
+              builder: (_) => TelaLogin(tipoLogin: 'cliente'),
             ),
           );
         } else {

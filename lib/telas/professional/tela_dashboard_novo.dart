@@ -66,11 +66,13 @@ class _TelaDashboardNovoState extends State<TelaDashboardNovo> {
       bottomNavigationBar: BottomNavNovo(
         currentIndex: _currentIndex,
         onTap: (i) {
-          setState(() => _currentIndex = i);
+          if (i == 0) return;
           if (i == 1) {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => TelaConversasNovo()));
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => TelaConversasNovo()));
           } else if (i == 2) {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => TelaNegocioNovo()));
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => TelaNegocioNovo()));
+          } else if (i == 3) {
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => TelaPerfilUsuarioNovo()));
           }
         },
         isProfessional: true,
@@ -132,7 +134,7 @@ class _TelaDashboardNovoState extends State<TelaDashboardNovo> {
                           IconButton(
                             icon: const Icon(Icons.person_outline, color: Colors.white),
                             onPressed: () {
-                              Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaPerfilUsuarioNovo()));
+                              Navigator.push(context, MaterialPageRoute(builder: (_) => TelaPerfilUsuarioNovo()));
                             },
                           ),
                         ],
@@ -189,10 +191,6 @@ class _TelaDashboardNovoState extends State<TelaDashboardNovo> {
                       'Ver Trabalhadores', 'Feed principal', Icons.people_outline, CoresNovo.success,
                       () => Navigator.push(context, MaterialPageRoute(builder: (_) => TelaFeedNovo(mostrarBottomNav: false))),
                     ),
-                    _buildQuickAction(
-                      'Impulsionar', 'Destacar no feed', Icons.rocket_launch, const Color(0xFFD97706),
-                      () => showDialog(context: context, builder: (_) => const DialogoBoostNovo()),
-                    ),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -234,23 +232,24 @@ class _TelaDashboardNovoState extends State<TelaDashboardNovo> {
           AuthService().atualizarModoUtilizacao(estado.usuarioLogado!.id, false);
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (_) => const TelaFeedNovo()),
+            MaterialPageRoute(builder: (_) => TelaFeedNovo()),
             (route) => false,
           );
         }
       },
       child: Container(
-        height: 30,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        height: 32,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
+          color: CoresNovo.starYellow.withOpacity(0.2),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withOpacity(0.4)),
+          border: Border.all(color: CoresNovo.starYellow),
         ),
         child: Row(
           children: const [
-            Icon(Icons.swap_horiz, color: Colors.white, size: 14),
-            SizedBox(width: 4),
-            Text('Modo Cliente', style: TextStyle(color: Colors.white, fontSize: 11)),
+            Icon(Icons.swap_horiz, color: CoresNovo.starYellow, size: 14),
+            SizedBox(width: 6),
+            Text('Mudar p/ Cliente', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
           ],
         ),
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../provedores/estado_global.dart';
+import '../servicos/auth_service.dart';
 import '../servicos/supabase_service.dart';
 import '../modelos/trabalhador_model.dart';
 import '../temas/cores_novo.dart';
@@ -17,6 +18,7 @@ import 'professional/tela_tornar_pro_novo.dart';
 import '../widgets/tela_imagem_ampliada.dart';
 import 'tela_explorar_trabalhos.dart';
 import 'tela_destaques.dart';
+import 'tela_pesquisa_novo.dart';
 
 class TelaFeedNovo extends StatefulWidget {
   final bool mostrarBottomNav;
@@ -32,9 +34,6 @@ class _TelaFeedNovoState extends State<TelaFeedNovo> {
   bool _carregando = true;
   String? _erro;
   final SupabaseService _supabaseService = SupabaseService();
-
-  String? _bairroSelecionado;
-  String? _profissaoSelecionada;
 
   @override
   void initState() {
@@ -60,7 +59,6 @@ class _TelaFeedNovoState extends State<TelaFeedNovo> {
 
       if (mounted) {
         estado.definirListaTrabalhadores(trabalhadores);
-        _carregarMedias(trabalhadores);
       }
     } catch (e) {
       print('Erro ao carregar trabalhadores: $e');
@@ -79,45 +77,6 @@ class _TelaFeedNovoState extends State<TelaFeedNovo> {
     }
   }
 
-  Future<void> _carregarMedias(List<TrabalhadorModel> trabalhadores) async {
-    await Future.wait(trabalhadores.map((t) async {
-      try {
-        final res = await _supabaseService.obterMediaAvaliacoes(t.id);
-        t.mediaAvaliacoes = res['media'] as double? ?? 0.0;
-        t.totalAvaliacoes = res['total'] as int? ?? 0;
-      } catch (e) {
-        print('Erro ao carregar média para ${t.nomeTrabalhador}: $e');
-      }
-    }));
-    if (mounted) setState(() {});
-  }
-
-  List<String> _extrairProfissoesUnicas(List<TrabalhadorModel> trabalhadores) {
-    final profissoes = <String>{'Todas'};
-    for (final t in trabalhadores) {
-      if (t.profissaoTrabalhador.isNotEmpty) {
-        profissoes.add(t.profissaoTrabalhador);
-      }
-    }
-    return profissoes.toList()..sort();
-  }
-
-  List<String> _extrairBairrosUnicos(List<TrabalhadorModel> trabalhadores) {
-    final bairros = <String>{'Todos'};
-    for (final t in trabalhadores) {
-      final bairro = _extrairBairro(t.descricaoTrabalhador ?? '');
-      if (bairro.isNotEmpty && bairro != 'Bissau') {
-        bairros.add(bairro);
-      }
-    }
-    return bairros.toList()..sort();
-  }
-
-  String _extrairBairro(String descricao) {
-    final match = RegExp(r'📍 Bairro:\s*(.+)').firstMatch(descricao);
-    return match?.group(1)?.trim() ?? 'Bissau';
-  }
-
   List<Map<String, dynamic>> _extrairFotosGaleria(List<TrabalhadorModel> trabalhadores) {
     final fotos = <Map<String, dynamic>>[];
     for (final t in trabalhadores) {
@@ -129,6 +88,11 @@ class _TelaFeedNovoState extends State<TelaFeedNovo> {
       }
     }
     return fotos;
+  }
+
+  String _extrairBairro(String descricao) {
+    final match = RegExp(r'📍 Bairro:\s*(.+)').firstMatch(descricao);
+    return match?.group(1)?.trim() ?? 'Bissau';
   }
 
   void _mostrarDialogoLogin(BuildContext context, TrabalhadorModel trabalhador) {
@@ -152,7 +116,7 @@ class _TelaFeedNovoState extends State<TelaFeedNovo> {
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(ctx);
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaCadastroNovo()));
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => TelaCadastroNovo()));
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: CoresNovo.starYellow,
@@ -167,7 +131,7 @@ class _TelaFeedNovoState extends State<TelaFeedNovo> {
               OutlinedButton(
                 onPressed: () {
                   Navigator.pop(ctx);
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaLoginNovo()));
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => TelaLoginNovo()));
                 },
                 style: OutlinedButton.styleFrom(
                   foregroundColor: CoresNovo.navyPrimary,
@@ -272,24 +236,9 @@ class _TelaFeedNovoState extends State<TelaFeedNovo> {
     final estado = Provider.of<EstadoGlobal>(context);
     final trabalhadores = estado.listaTrabalhadores;
 
-    final profissoesDisponiveis = _extrairProfissoesUnicas(trabalhadores);
-    final bairrosDisponiveis = _extrairBairrosUnicos(trabalhadores);
-
     final trabalhadoresDescoberta = [...trabalhadores]
       ..sort((a, b) => b.mediaAvaliacoes.compareTo(a.mediaAvaliacoes));
 
-    final trabalhadoresFiltrados = trabalhadores.where((t) {
-      final matchProfissao = _profissaoSelecionada == null ||
-          _profissaoSelecionada == 'Todas' ||
-          t.profissaoTrabalhador == _profissaoSelecionada;
-
-      final matchBairro = _bairroSelecionado == null ||
-          _bairroSelecionado == 'Todos' ||
-          _extrairBairro(t.descricaoTrabalhador ?? '') == _bairroSelecionado;
-
-      return matchProfissao && matchBairro;
-    }).toList();
-    
     return Scaffold(
       backgroundColor: CoresNovo.background,
       appBar: widget.mostrarBottomNav 
@@ -303,8 +252,9 @@ class _TelaFeedNovoState extends State<TelaFeedNovo> {
               ],
             ),
             actions: [
-              _buildActionIcon(Icons.chat_bubble_outline, const TelaConversasNovo(), badgeCount: estado.totalConversasNaoLidas),
-              _buildActionIcon(Icons.person_outline, estado.estaLogado ? const TelaPerfilUsuarioNovo() : const TelaTornarProNovo()),
+              _buildActionIcon(Icons.search, TelaPesquisaNovo()),
+              _buildActionIcon(Icons.chat_bubble_outline, TelaConversasNovo(), badgeCount: estado.totalConversasNaoLidas),
+              _buildActionIcon(Icons.person_outline, estado.estaLogado ? TelaPerfilUsuarioNovo() : TelaTornarProNovo()),
               const SizedBox(width: 8),
             ],
           )
@@ -323,11 +273,14 @@ class _TelaFeedNovoState extends State<TelaFeedNovo> {
             onTap: (i) {
               setState(() => _currentIndex = i);
               if (i == 1) {
-                // Conversas
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaConversasNovo()));
+                // Pesquisa
+                Navigator.push(context, MaterialPageRoute(builder: (_) => TelaPesquisaNovo()));
               } else if (i == 2) {
+                // Conversas
+                Navigator.push(context, MaterialPageRoute(builder: (_) => TelaConversasNovo()));
+              } else if (i == 3) {
                 // Perfil do Utilizador
-                Navigator.push(context, MaterialPageRoute(builder: (_) => estado.estaLogado ? const TelaPerfilUsuarioNovo() : const TelaTornarProNovo()));
+                Navigator.push(context, MaterialPageRoute(builder: (_) => estado.estaLogado ? TelaPerfilUsuarioNovo() : TelaTornarProNovo()));
               }
             },
             unreadMessages: estado.totalConversasNaoLidas,
@@ -338,47 +291,62 @@ class _TelaFeedNovoState extends State<TelaFeedNovo> {
         : ListView(
             padding: const EdgeInsets.symmetric(vertical: 16),
             children: [
-          // Barra de Pesquisa e Filtros
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              children: [
-                TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Procurar profissional ou serviço...',
-                    prefixIcon: const Icon(Icons.search, color: CoresNovo.navyPrimary),
-                    fillColor: Colors.white,
-                    filled: true,
+          const SizedBox(height: 8),
+          
+          // Banner de Alternância de Modo (Rápido)
+          if (estado.estaLogado)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: GestureDetector(
+                onTap: () {
+                  final novoModo = !estado.modoProfissional;
+                  estado.alternarModo();
+                  AuthService().atualizarModoUtilizacao(estado.usuarioLogado!.id, novoModo);
+                  
+                  if (novoModo) {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => TelaDashboardNovo()),
+                      (r) => false,
+                    );
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: CoresNovo.blueLight,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: CoresNovo.navyPrimary.withOpacity(0.1)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                        child: const Icon(Icons.swap_horiz, color: CoresNovo.navyPrimary, size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Modo Cliente Ativo',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: CoresNovo.navyPrimary),
+                            ),
+                            Text(
+                              'Tocar para mudar para Painel Profissional',
+                              style: TextStyle(fontSize: 11, color: CoresNovo.navyPrimary.withOpacity(0.7)),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right, color: CoresNovo.navyPrimary, size: 20),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildFilterDropdown(
-                        'Profissão', 
-                        Icons.work_outline, 
-                        profissoesDisponiveis, 
-                        _profissaoSelecionada, 
-                        (v) => setState(() => _profissaoSelecionada = v)
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _buildFilterDropdown(
-                        'Bairro', 
-                        Icons.location_on_outlined, 
-                        bairrosDisponiveis, 
-                        _bairroSelecionado, 
-                        (v) => setState(() => _bairroSelecionado = v)
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
 
           // Secção Explorar Trabalhos (Galeria Pública)
           _buildSectionHeader(
@@ -406,7 +374,7 @@ class _TelaFeedNovoState extends State<TelaFeedNovo> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const TelaDestaques()),
+                MaterialPageRoute(builder: (_) => TelaDestaques()),
               );
             },
           ),
@@ -426,15 +394,15 @@ class _TelaFeedNovoState extends State<TelaFeedNovo> {
           const SizedBox(height: 24),
 
           // Secção Profissionais
-          _buildSectionHeader('Profissionais', '${trabalhadoresFiltrados.length} disponíveis'),
+          _buildSectionHeader('Profissionais', '${trabalhadores.length} disponíveis'),
           const SizedBox(height: 12),
           _carregando 
             ? const Center(child: CircularProgressIndicator())
-            : _buildInterleavedProfessionalGrid(trabalhadoresFiltrados),
+            : _buildInterleavedProfessionalGrid(trabalhadores),
           const SizedBox(height: 24),
 
           // Banner Pro Final (Apenas se houver poucos profissionais ou nenhum)
-          if (trabalhadoresFiltrados.length <= 10) ...[
+          if (trabalhadores.length <= 10) ...[
             _buildBecomeProBanner(),
             const SizedBox(height: 24),
           ],
@@ -586,39 +554,6 @@ class _TelaFeedNovoState extends State<TelaFeedNovo> {
     );
   }
 
-  Widget _buildFilterDropdown(String hint, IconData icon, List<String> items, String? value, Function(String?) onChanged) {
-    return Container(
-      height: 48,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: CoresNovo.border),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: value,
-          hint: Row(
-            children: [
-              Icon(icon, size: 18, color: CoresNovo.navyPrimary),
-              const SizedBox(width: 8),
-              Text(hint, style: const TextStyle(fontSize: 13, color: CoresNovo.textSecondary)),
-            ],
-          ),
-          isExpanded: true,
-          icon: const Icon(Icons.arrow_drop_down, color: CoresNovo.textSecondary),
-          items: items.map((String item) {
-            return DropdownMenuItem<String>(
-              value: item,
-              child: Text(item, style: const TextStyle(fontSize: 14)),
-            );
-          }).toList(),
-          onChanged: onChanged,
-        ),
-      ),
-    );
-  }
-
   Widget _buildSectionHeader(String title, String subtitle, {VoidCallback? onTap}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -745,13 +680,11 @@ class _TelaFeedNovoState extends State<TelaFeedNovo> {
                     ],
                   ),
                   const SizedBox(height: 6),
-                  FutureBuilder<Map<String, dynamic>>(
-                    future: _supabaseService.obterMediaAvaliacoes(t.id),
-                    builder: (context, snapshot) {
-                      final nota = snapshot.data?['media'] as double? ?? 0.0;
-                      final total = snapshot.data?['total'] as int? ?? 0;
-                      return EstrelasAvaliacaoNovo(nota: nota, totalAvaliacoes: total, starSize: 13, textSize: 12);
-                    }
+                  EstrelasAvaliacaoNovo(
+                    nota: t.mediaAvaliacoes, 
+                    totalAvaliacoes: t.totalAvaliacoes, 
+                    starSize: 13, 
+                    textSize: 12
                   ),
                 ],
               ),
@@ -801,7 +734,7 @@ class _TelaFeedNovoState extends State<TelaFeedNovo> {
             height: 38,
             child: ElevatedButton(
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaTornarProNovo()));
+                Navigator.push(context, MaterialPageRoute(builder: (_) => TelaTornarProNovo()));
               },
               style: ElevatedButton.styleFrom(backgroundColor: CoresNovo.starYellow, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
               child: const Text('Aceder ao Painel do Profissional', style: TextStyle(color: CoresNovo.navyPrimary, fontWeight: FontWeight.bold, fontSize: 12)),

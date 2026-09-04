@@ -5,6 +5,13 @@ import '../provedores/estado_global.dart';
 import '../servicos/supabase_service.dart';
 import '../modelos/trabalhador_model.dart';
 import '../temas/cores_novo.dart';
+import 'tela_feed_novo.dart';
+import 'tela_pesquisa_novo.dart';
+import 'tela_perfil_usuario_novo.dart';
+import 'professional/tela_tornar_pro_novo.dart';
+import 'professional/tela_dashboard_novo.dart';
+import 'professional/tela_negocio_novo.dart';
+import '../widgets/bottom_nav_novo.dart';
 import 'tela_chat_novo.dart';
 import 'tela_login_novo.dart';
 
@@ -41,7 +48,7 @@ class _TelaConversasNovoState extends State<TelaConversasNovo> {
               const Text('Faz login para ver as tuas conversas.'),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaLoginNovo())),
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TelaLoginNovo())),
                 style: ElevatedButton.styleFrom(backgroundColor: CoresNovo.navyPrimary),
                 child: const Text('Ir para Login'),
               ),
@@ -64,6 +71,22 @@ class _TelaConversasNovoState extends State<TelaConversasNovo> {
           'Minhas Conversas',
           style: TextStyle(fontWeight: FontWeight.bold, color: CoresNovo.navyPrimary),
         ),
+      ),
+      bottomNavigationBar: BottomNavNovo(
+        currentIndex: estado.modoProfissional ? 1 : 2,
+        onTap: (i) {
+          if (estado.modoProfissional) {
+            if (i == 0) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => TelaDashboardNovo()));
+            if (i == 2) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => TelaNegocioNovo()));
+            if (i == 3) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => TelaPerfilUsuarioNovo()));
+          } else {
+            if (i == 0) Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => TelaFeedNovo()), (r) => false);
+            if (i == 1) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => TelaPesquisaNovo()));
+            if (i == 3) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => estado.estaLogado ? TelaPerfilUsuarioNovo() : TelaTornarProNovo()));
+          }
+        },
+        isProfessional: estado.modoProfissional,
+        unreadMessages: estado.totalConversasNaoLidas,
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _supabaseService.obterConversas(usuario?.id ?? ''),

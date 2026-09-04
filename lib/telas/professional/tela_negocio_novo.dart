@@ -14,6 +14,9 @@ import '../tela_perfil_usuario_novo.dart';
 import '../tela_editar_card.dart';
 import '../tela_novo_card.dart';
 import '../tela_imagem_ampliada.dart';
+import 'tela_dashboard_novo.dart';
+import '../tela_conversas_novo.dart';
+import '../../widgets/bottom_nav_novo.dart';
 import 'dialogo_editar_perfil_novo.dart';
 import 'dialogo_servico_novo.dart';
 
@@ -218,6 +221,16 @@ class _TelaNegocioNovoState extends State<TelaNegocioNovo> {
         ),
         title: const Text('Meu Negócio', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
+      bottomNavigationBar: BottomNavNovo(
+        currentIndex: 2,
+        onTap: (i) {
+          if (i == 0) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => TelaDashboardNovo()));
+          if (i == 1) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => TelaConversasNovo()));
+          if (i == 3) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => TelaPerfilUsuarioNovo()));
+        },
+        isProfessional: true,
+        unreadMessages: estado.totalConversasNaoLidas,
+      ),
       body: CustomScrollView(
         slivers: [
           // Header
@@ -239,7 +252,7 @@ class _TelaNegocioNovoState extends State<TelaNegocioNovo> {
                     children: [
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaPerfilUsuarioNovo()));
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => TelaPerfilUsuarioNovo()));
                         },
                         child: _buildAvatarWithVerifiedBadge(usuario?.nomeUsuario),
                       ),
@@ -315,7 +328,7 @@ class _TelaNegocioNovoState extends State<TelaNegocioNovo> {
           AuthService().atualizarModoUtilizacao(estado.usuarioLogado!.id, false);
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (_) => const TelaFeedNovo()),
+            MaterialPageRoute(builder: (_) => TelaFeedNovo()),
             (route) => false,
           );
         }
@@ -414,8 +427,6 @@ class _TelaNegocioNovoState extends State<TelaNegocioNovo> {
           const SizedBox(height: 8),
           Row(
             children: [
-              Expanded(child: _buildActionBtn(Icons.rocket_launch, 'Impulsionar', const Color(0xFFD97706))),
-              const SizedBox(width: 8),
               Expanded(child: _buildActionBtnOutlined(Icons.preview, 'Ver Perfil Público')),
               const SizedBox(width: 8),
               _buildShareBtn(),
@@ -503,7 +514,7 @@ class _TelaNegocioNovoState extends State<TelaNegocioNovo> {
   Widget _buildAddBtn(String label) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaNovoCard())).then((_) => _carregarCards());
+        Navigator.push(context, MaterialPageRoute(builder: (_) => TelaNovoCard())).then((_) => _carregarCards());
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),

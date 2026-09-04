@@ -71,12 +71,12 @@ class _TelaTornarProNovoState extends State<TelaTornarProNovo> {
                   if (estaLogado) {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const TelaFormularioProfissional()),
+                      MaterialPageRoute(builder: (_) => TelaFormularioProfissional()),
                     );
                   } else {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const TelaCadastroNovo(profissional: true)),
+                      MaterialPageRoute(builder: (_) => TelaCadastroNovo(profissional: true)),
                     );
                   }
                 },
@@ -88,7 +88,7 @@ class _TelaTornarProNovoState extends State<TelaTornarProNovo> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const TelaLoginNovo()),
+                      MaterialPageRoute(builder: (_) => TelaLoginNovo()),
                     );
                   },
                 ),

@@ -284,7 +284,7 @@ class _TelaChatState extends State<TelaChat> {
       Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (_) => const TelaLogin(tipoLogin: 'cliente')));
+              builder: (_) => TelaLogin(tipoLogin: 'cliente')));
       return;
     }
 

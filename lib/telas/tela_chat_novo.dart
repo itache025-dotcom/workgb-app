@@ -92,7 +92,7 @@ class _TelaChatNovoState extends State<TelaChatNovo> {
     if (widget.trabalhador == null) return;
 
     if (!estado.estaLogado) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaLogin(tipoLogin: 'cliente')));
+      Navigator.push(context, MaterialPageRoute(builder: (_) => TelaLogin(tipoLogin: 'cliente')));
       return;
     }
 

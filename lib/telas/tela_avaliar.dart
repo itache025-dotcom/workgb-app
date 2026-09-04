@@ -40,6 +40,25 @@ class _TelaAvaliarState extends State<TelaAvaliar> {
     setState(() => _carregando = true);
 
     try {
+      // 1. Verificar se já avaliou (apenas para utilizadores logados)
+      if (estado.estaLogado) {
+        final jaAvaliou = await _supabaseService.verificarSeJaAvaliou(
+          trabalhadorId: widget.trabalhador.id,
+          utilizadorId: estado.usuarioLogado!.id,
+        );
+
+        if (jaAvaliou) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Já avaliaste este profissional.'), backgroundColor: Colors.orange),
+            );
+            Navigator.pop(context, false);
+          }
+          return;
+        }
+      }
+
+      // 2. Adicionar avaliação
       await _supabaseService.adicionarAvaliacao(
         trabalhadorId: widget.trabalhador.id,
         utilizadorId: estado.usuarioLogado?.id,

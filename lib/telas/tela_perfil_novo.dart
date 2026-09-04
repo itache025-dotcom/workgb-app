@@ -28,6 +28,7 @@ class _TelaPerfilNovoState extends State<TelaPerfilNovo> {
   List<String> _galeria = [];
   bool _carregandoGaleria = false;
   bool _carregandoAvaliacoes = true;
+  bool _jaAvaliou = false;
 
   @override
   void initState() {
@@ -39,11 +40,31 @@ class _TelaPerfilNovoState extends State<TelaPerfilNovo> {
   }
 
   Future<void> _carregarDados() async {
-    await _carregarAvaliacoes();
+    await Future.wait([
+      _carregarAvaliacoes(),
+      _verificarAvaliacaoExistente(),
+    ]);
     if (mounted) {
       setState(() {
         _galeria = widget.trabalhador.galeria;
       });
+    }
+  }
+
+  Future<void> _verificarAvaliacaoExistente() async {
+    final estado = Provider.of<EstadoGlobal>(context, listen: false);
+    if (!estado.estaLogado) return;
+
+    try {
+      final jaAvaliou = await _supabaseService.verificarSeJaAvaliou(
+        trabalhadorId: widget.trabalhador.id,
+        utilizadorId: estado.usuarioLogado!.id,
+      );
+      if (mounted) {
+        setState(() => _jaAvaliou = jaAvaliou);
+      }
+    } catch (e) {
+      print('Erro ao verificar avaliação existente: $e');
     }
   }
 
@@ -294,20 +315,14 @@ class _TelaPerfilNovoState extends State<TelaPerfilNovo> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      FutureBuilder<Map<String, dynamic>>(
-                        future: _supabaseService.obterMediaAvaliacoes(t.id),
-                        builder: (context, snapshot) {
-                          final nota = snapshot.data?['media'] as double? ?? 0.0;
-                          final total = snapshot.data?['total'] as int? ?? 0;
-                          return Row(
-                            children: [
-                              EstrelasAvaliacaoNovo(nota: nota, starSize: 18, textSize: 15, textColor: CoresNovo.navyPrimary),
-                              const SizedBox(width: 6),
-                              Text('($total avaliações)', style: const TextStyle(fontSize: 13, color: CoresNovo.textSecondary, fontWeight: FontWeight.w500)),
-                            ],
-                          );
-                        }
+                      EstrelasAvaliacaoNovo(
+                        nota: t.mediaAvaliacoes, 
+                        starSize: 18, 
+                        textSize: 15, 
+                        textColor: CoresNovo.navyPrimary
                       ),
+                      const SizedBox(width: 6),
+                      Text('(${t.totalAvaliacoes} avaliações)', style: const TextStyle(fontSize: 13, color: CoresNovo.textSecondary, fontWeight: FontWeight.w500)),
                     ],
                   ),
                 ),
@@ -548,26 +563,20 @@ class _TelaPerfilNovoState extends State<TelaPerfilNovo> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('${_avaliacoes.length} avaliações de clientes', style: const TextStyle(fontSize: 12, color: CoresNovo.textSecondary)),
-            FutureBuilder<Map<String, dynamic>>(
-              future: _supabaseService.obterMediaAvaliacoes(widget.trabalhador.id),
-              builder: (context, snapshot) {
-                final nota = snapshot.data?['media'] as double? ?? 0.0;
-                return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: CoresNovo.starYellow.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: CoresNovo.starYellow.withOpacity(0.4)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.star, color: CoresNovo.starYellow, size: 16),
-                      const SizedBox(width: 4),
-                      Text(nota.toStringAsFixed(1), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: CoresNovo.navyPrimary)),
-                    ],
-                  ),
-                );
-              }
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: CoresNovo.starYellow.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: CoresNovo.starYellow.withOpacity(0.4)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.star, color: CoresNovo.starYellow, size: 16),
+                  const SizedBox(width: 4),
+                  Text(widget.trabalhador.mediaAvaliacoes.toStringAsFixed(1), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: CoresNovo.navyPrimary)),
+                ],
+              ),
             ),
           ],
         ),
@@ -576,18 +585,34 @@ class _TelaPerfilNovoState extends State<TelaPerfilNovo> {
           SizedBox(
             width: double.infinity,
             height: 46,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context, 
-                  MaterialPageRoute(builder: (_) => TelaAvaliar(trabalhador: widget.trabalhador))
-                ).then((v) {
-                  if (v == true) _carregarAvaliacoes();
-                });
-              },
-              icon: const Icon(Icons.rate_review, size: 18),
-              label: const Text('Avaliar este Profissional', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-            ),
+            child: _jaAvaliou 
+              ? Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'Já avaliaste este profissional',
+                      style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                )
+              : ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context, 
+                      MaterialPageRoute(builder: (_) => TelaAvaliar(trabalhador: widget.trabalhador))
+                    ).then((v) {
+                      if (v == true) {
+                        _carregarAvaliacoes();
+                        _verificarAvaliacaoExistente();
+                      }
+                    });
+                  },
+                  icon: const Icon(Icons.rate_review, size: 18),
+                  label: const Text('Avaliar este Profissional', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                ),
           ),
         ],
         const Divider(height: 32),

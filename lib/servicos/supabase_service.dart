@@ -7,7 +7,7 @@ import 'conversao.dart';
 class SupabaseService {
   final SupabaseClient _client = Supabase.instance.client;
 
-  /// Listar todos os trabalhadores
+  /// Listar todos os trabalhadores (Otimizado via VIEW)
   Future<List<TrabalhadorModel>> listarTrabalhadores({
     double? lat,
     double? lng,
@@ -16,70 +16,49 @@ class SupabaseService {
     final double? pLng = Conversao.converterParaDouble(lng);
 
     try {
-      final response = await _client.from('trabalhadores').select();
-      print('DEBUG CARDS: Resposta bruta: $response');
+      // Usar a VIEW que já traz as médias calculadas
+      final response = await _client.from('trabalhadores_com_media').select();
       
-      print('DEBUG: Supabase retornou ${response.length} registros');
-
       final List<TrabalhadorModel> lista = [];
 
-      for (var i = 0; i < response.length; i++) {
-        final dados = response[i];
-        print('DEBUG: Processando registro $i (ID: ${dados['id']})');
-        
-        // Log de todos os tipos para identificar o culpado
-        dados.forEach((k, v) => print('  - Campo: $k = $v (${v?.runtimeType})'));
-
-        double? dLat;
-        try { dLat = Conversao.converterParaDouble(dados['lat']); } catch (e) { print('ERRO NO CAMPO lat: $e'); }
-        
-        double? dLng;
-        try { dLng = Conversao.converterParaDouble(dados['lng']); } catch (e) { print('ERRO NO CAMPO lng: $e'); }
+      for (var dados in (response as List)) {
+        double? dLat = Conversao.converterParaDouble(dados['lat']);
+        double? dLng = Conversao.converterParaDouble(dados['lng']);
 
         double? dKm;
         if (pLat != null && pLng != null && dLat != null && dLng != null) {
-          try {
-            dKm = _calcularDistancia(pLat, pLng, dLat, dLng);
-          } catch (e) {
-            print('ERRO NO CALCULO DISTANCIA: $e');
-          }
+          dKm = _calcularDistancia(pLat, pLng, dLat, dLng);
         }
 
-        try {
-          final trabalhador = TrabalhadorModel(
-            id: dados['id'].toString(),
-            nomeTrabalhador: dados['nome_trabalhador']?.toString() ?? 'Sem Nome',
-            profissaoTrabalhador: dados['profissao_trabalhador']?.toString() ?? 'Trabalhador',
-            fotoTrabalhador: dados['foto_trabalhador']?.toString(),
-            descricaoTrabalhador: dados['descricao_trabalhador']?.toString(),
-            lat: dLat,
-            lng: dLng,
-            distanciaKm: dKm,
-            disponibilidadeDias: dados['disponibilidade_dias'] != null 
-                ? List<String>.from(dados['disponibilidade_dias']) 
-                : [],
-            disponibilidadeInicio: dados['disponibilidade_inicio']?.toString(),
-            disponibilidadeFim: dados['disponibilidade_fim']?.toString(),
-            documentos: dados['documentos'] != null 
-                ? List<String>.from(dados['documentos']) 
-                : [],
-            galeria: dados['galeria'] != null 
-                ? List<String>.from(dados['galeria']) 
-                : [],
-            utilizadorId: dados['utilizador_id']?.toString(),
-            mediaAvaliacoes: (dados['media_avaliacoes'] as num?)?.toDouble() ?? 0.0,
-            totalAvaliacoes: (dados['total_avaliacoes'] as num?)?.toInt() ?? 0,
-          );
-          lista.add(trabalhador);
-        } catch (e) {
-          print('ERRO NA CRIACAO DO OBJETO TrabalhadorModel: $e');
-        }
+        lista.add(TrabalhadorModel(
+          id: dados['id'].toString(),
+          nomeTrabalhador: dados['nome_trabalhador']?.toString() ?? 'Sem Nome',
+          profissaoTrabalhador: dados['profissao_trabalhador']?.toString() ?? 'Trabalhador',
+          fotoTrabalhador: dados['foto_trabalhador']?.toString(),
+          descricaoTrabalhador: dados['descricao_trabalhador']?.toString(),
+          lat: dLat,
+          lng: dLng,
+          distanciaKm: dKm,
+          disponibilidadeDias: dados['disponibilidade_dias'] != null 
+              ? List<String>.from(dados['disponibilidade_dias']) 
+              : [],
+          disponibilidadeInicio: dados['disponibilidade_inicio']?.toString(),
+          disponibilidadeFim: dados['disponibilidade_fim']?.toString(),
+          documentos: dados['documentos'] != null 
+              ? List<String>.from(dados['documentos']) 
+              : [],
+          galeria: dados['galeria'] != null 
+              ? List<String>.from(dados['galeria']) 
+              : [],
+          utilizadorId: dados['utilizador_id']?.toString(),
+          mediaAvaliacoes: (dados['media_avaliacoes'] as num?)?.toDouble() ?? 0.0,
+          totalAvaliacoes: (dados['total_avaliacoes'] as num?)?.toInt() ?? 0,
+        ));
       }
 
       return lista;
     } catch (e) {
-      print('ERRO CRÍTICO EM listarTrabalhadores: $e');
-      print('TIPO DO ERRO: ${e.runtimeType}');
+      print('ERRO EM listarTrabalhadores: $e');
       rethrow;
     }
   }
@@ -339,7 +318,7 @@ class SupabaseService {
 
   // ---------- SISTEMA DE AVALIAÇÕES ----------
 
-  /// Adiciona uma nova avaliação
+  /// Adiciona uma nova avaliação e notifica o profissional
   Future<void> adicionarAvaliacao({
     required String trabalhadorId,
     String? utilizadorId,
@@ -347,13 +326,46 @@ class SupabaseService {
     required String comentario,
     String? nomeAvaliador,
   }) async {
+    final tId = int.parse(trabalhadorId);
+    
+    // 1. Inserir a avaliação
     await _client.from('avaliacoes').insert({
-      'trabalhador_id': int.parse(trabalhadorId),
+      'trabalhador_id': tId,
       'utilizador_id': utilizadorId,
       'estrelas': estrelas,
       'comentario': comentario,
       'nome_avaliador': nomeAvaliador,
     });
+
+    // 2. Disparar notificação para o dono do card via RPC
+    try {
+      await _client.rpc('notificar_avaliacao', params: {
+        'card_id': tId,
+      });
+      print('DEBUG NOTIFICACAO: RPC notificar_avaliacao chamada para card $tId');
+    } catch (e) {
+      print('Erro ao disparar notificação de avaliação: $e');
+    }
+  }
+
+  /// Verifica se o utilizador já avaliou este trabalhador
+  Future<bool> verificarSeJaAvaliou({
+    required String trabalhadorId,
+    required String utilizadorId,
+  }) async {
+    try {
+      final response = await _client
+          .from('avaliacoes')
+          .select('id')
+          .eq('trabalhador_id', int.parse(trabalhadorId))
+          .eq('utilizador_id', utilizadorId)
+          .maybeSingle();
+      
+      return response != null;
+    } catch (e) {
+      print('Erro ao verificar avaliação: $e');
+      return false;
+    }
   }
 
   /// Procura avaliações de um trabalhador

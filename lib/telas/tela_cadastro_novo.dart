@@ -107,13 +107,13 @@ class _TelaCadastroNovoState extends State<TelaCadastroNovo> {
         if (usuario.tipoUsuario == 'profissional') {
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (_) => const TelaDashboardNovo()),
+            MaterialPageRoute(builder: (_) => TelaDashboardNovo()),
             (route) => false,
           );
         } else {
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (_) => const TelaFeedNovo()),
+            MaterialPageRoute(builder: (_) => TelaFeedNovo()),
             (route) => false,
           );
         }
@@ -343,7 +343,7 @@ class _TelaCadastroNovoState extends State<TelaCadastroNovo> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const TelaLoginNovo()),
+                        MaterialPageRoute(builder: (_) => TelaLoginNovo()),
                       );
                     },
                     child: const Text(

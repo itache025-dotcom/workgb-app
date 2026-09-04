@@ -38,16 +38,8 @@ class _TelaDestaquesState extends State<TelaDestaques> {
         lng: usuario?.lng ?? 0.0,
       );
 
-      // Carregar médias para garantir ordenação correta
-      await Future.wait(trabalhadores.map((t) async {
-        try {
-          final res = await _supabaseService.obterMediaAvaliacoes(t.id);
-          t.mediaAvaliacoes = res['media'] as double? ?? 0.0;
-          t.totalAvaliacoes = res['total'] as int? ?? 0;
-        } catch (e) {}
-      }));
-
       // Critério: Mostrar TODOS os profissionais ordenados por média
+      // (As médias já vêm carregadas do listarTrabalhadores otimizado)
       final filtrados = [...trabalhadores]
         ..sort((a, b) => b.mediaAvaliacoes.compareTo(a.mediaAvaliacoes));
 
@@ -83,7 +75,7 @@ class _TelaDestaquesState extends State<TelaDestaques> {
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(ctx);
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaCadastroNovo()));
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => TelaCadastroNovo()));
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: CoresNovo.starYellow,
@@ -97,7 +89,7 @@ class _TelaDestaquesState extends State<TelaDestaques> {
               OutlinedButton(
                 onPressed: () {
                   Navigator.pop(ctx);
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaLoginNovo()));
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => TelaLoginNovo()));
                 },
                 style: OutlinedButton.styleFrom(
                   foregroundColor: CoresNovo.navyPrimary,

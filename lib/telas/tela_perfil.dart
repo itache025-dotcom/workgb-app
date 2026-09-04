@@ -274,7 +274,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (_) => const TelaLogin(tipoLogin: 'cliente')),
+                        builder: (_) => TelaLogin(tipoLogin: 'cliente')),
                   );
                 } else {
                   Navigator.push(

@@ -35,7 +35,7 @@ class TelaExplorarTrabalhos extends StatelessWidget {
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(ctx);
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaCadastroNovo()));
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => TelaCadastroNovo()));
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: CoresNovo.starYellow,
@@ -50,7 +50,7 @@ class TelaExplorarTrabalhos extends StatelessWidget {
               OutlinedButton(
                 onPressed: () {
                   Navigator.pop(ctx);
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaLoginNovo()));
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => TelaLoginNovo()));
                 },
                 style: OutlinedButton.styleFrom(
                   foregroundColor: CoresNovo.navyPrimary,

@@ -42,6 +42,11 @@ class BottomNavNovo extends StatelessWidget {
             selectedIcon: Icon(Icons.storefront, color: CoresNovo.navyPrimary),
             label: 'Meu Negócio',
           ),
+          const NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person, color: CoresNovo.navyPrimary),
+            label: 'Perfil',
+          ),
         ],
       );
     }
@@ -57,6 +62,11 @@ class BottomNavNovo extends StatelessWidget {
           icon: Icon(Icons.home_outlined),
           selectedIcon: Icon(Icons.home, color: CoresNovo.navyPrimary),
           label: 'Feed',
+        ),
+        const NavigationDestination(
+          icon: Icon(Icons.search),
+          selectedIcon: Icon(Icons.search, color: CoresNovo.navyPrimary),
+          label: 'Pesquisar',
         ),
         NavigationDestination(
           icon: _buildBadgeIcon(Icons.chat_bubble_outline, unreadMessages, CoresNovo.navyPrimary, Colors.white),

@@ -145,14 +145,14 @@ class TelaPainelProfissional extends StatelessWidget {
                   icon: Icons.add_business_outlined,
                   label: 'Publicar\nServiço',
                   color: Colors.orange,
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaNovoCard())),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TelaNovoCard())),
                 ),
                 _buildMenuButton(
                   context,
                   icon: Icons.credit_card_outlined,
                   label: 'Meus\nCards',
                   color: Colors.blue,
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaMeusCards())),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TelaMeusCards())),
                 ),
                 _buildMenuButton(
                   context,
@@ -170,14 +170,14 @@ class TelaPainelProfissional extends StatelessWidget {
                   icon: Icons.manage_accounts_outlined,
                   label: 'Editar\nPerfil',
                   color: Colors.purple,
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaEditarPerfil())),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TelaEditarPerfil())),
                 ),
                 _buildMenuButton(
                   context,
                   icon: Icons.star_outline,
                   label: 'Minhas\nAvaliações',
                   color: Colors.amber,
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaMinhasAvaliacoes())),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TelaMinhasAvaliacoes())),
                 ),
                 Consumer<EstadoGlobal>(
                   builder: (context, estado, child) {
@@ -187,7 +187,7 @@ class TelaPainelProfissional extends StatelessWidget {
                       label: 'Minhas\nMensagens',
                       color: Colors.redAccent,
                       badgeCount: estado.totalConversasNaoLidas,
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaMensagensProfissional())).then((_) {
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TelaMensagensProfissional())).then((_) {
                         // Ao voltar, recalcula para garantir sincronia se algo mudou
                         if (usuario != null) {
                           SupabaseService().obterTotalConversasNaoLidas(usuario.id).then((total) {

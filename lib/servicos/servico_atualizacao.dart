@@ -4,8 +4,9 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ServicoAtualizacao {
-  static const String _urlVersao =
-      'https://raw.githubusercontent.com/itache025-dotcom/workgb-app/main/versao.json';
+  static String get _urlVersao {
+    return 'https://raw.githubusercontent.com/itache025-dotcom/workgb-app/main/versao.json?t=${DateTime.now().millisecondsSinceEpoch}';
+  }
 
   /// Verifica se há nova versão disponível
   static Future<bool> verificarAtualizacao() async {

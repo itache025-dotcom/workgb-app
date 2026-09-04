@@ -141,7 +141,7 @@ class _TelaFormularioProfissionalState extends State<TelaFormularioProfissional>
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (_) => const TelaDashboardNovo()),
+          MaterialPageRoute(builder: (_) => TelaDashboardNovo()),
           (route) => false,
         );
       }

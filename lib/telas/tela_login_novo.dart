@@ -58,12 +58,12 @@ class _TelaLoginNovoState extends State<TelaLoginNovo> {
         if (usuario.tipoUsuario == 'profissional') {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const TelaDashboardNovo()),
+            MaterialPageRoute(builder: (_) => TelaDashboardNovo()),
           );
         } else {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const TelaFeedNovo()),
+            MaterialPageRoute(builder: (_) => TelaFeedNovo()),
           );
         }
       }
@@ -233,7 +233,7 @@ class _TelaLoginNovoState extends State<TelaLoginNovo> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const TelaCadastroNovo()),
+                        MaterialPageRoute(builder: (_) => TelaCadastroNovo()),
                       );
                     },
                     child: const Text(

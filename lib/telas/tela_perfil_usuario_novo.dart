@@ -11,7 +11,11 @@ import '../temas/cores_novo.dart';
 import '../widgets/botao_novo.dart';
 import 'tela_feed_novo.dart';
 import 'tela_novo_card.dart';
+import 'tela_conversas_novo.dart';
+import 'tela_pesquisa_novo.dart';
+import '../widgets/bottom_nav_novo.dart';
 import 'professional/tela_dashboard_novo.dart';
+import 'professional/tela_negocio_novo.dart';
 import 'professional/tela_tornar_pro_novo.dart';
 import 'professional/tela_formulario_profissional.dart';
 
@@ -174,7 +178,7 @@ class _TelaPerfilUsuarioNovoState extends State<TelaPerfilUsuarioNovo> {
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (_) => const TelaDashboardNovo()),
+          MaterialPageRoute(builder: (_) => TelaDashboardNovo()),
           (r) => false,
         );
       }
@@ -182,7 +186,7 @@ class _TelaPerfilUsuarioNovoState extends State<TelaPerfilUsuarioNovo> {
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (_) => const TelaFeedNovo()),
+          MaterialPageRoute(builder: (_) => TelaFeedNovo()),
           (r) => false,
         );
       }
@@ -217,7 +221,7 @@ class _TelaPerfilUsuarioNovoState extends State<TelaPerfilUsuarioNovo> {
       Provider.of<EstadoGlobal>(context, listen: false).limparUsuarioLogado();
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => const TelaFeedNovo()),
+        MaterialPageRoute(builder: (_) => TelaFeedNovo()),
         (route) => false,
       );
     }
@@ -241,6 +245,22 @@ class _TelaPerfilUsuarioNovoState extends State<TelaPerfilUsuarioNovo> {
           'Meu Perfil',
           style: TextStyle(fontWeight: FontWeight.bold, color: CoresNovo.navyPrimary),
         ),
+      ),
+      bottomNavigationBar: BottomNavNovo(
+        currentIndex: estado.modoProfissional ? 3 : 3, // Perfil é o último em ambos (4º item)
+        onTap: (i) {
+          if (estado.modoProfissional) {
+            if (i == 0) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => TelaDashboardNovo()));
+            if (i == 1) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => TelaConversasNovo()));
+            if (i == 2) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => TelaNegocioNovo()));
+          } else {
+            if (i == 0) Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => TelaFeedNovo()), (r) => false);
+            if (i == 1) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => TelaPesquisaNovo()));
+            if (i == 2) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => TelaConversasNovo()));
+          }
+        },
+        isProfessional: estado.modoProfissional,
+        unreadMessages: estado.totalConversasNaoLidas,
       ),
       body: Stack(
         children: [
@@ -377,7 +397,7 @@ class _TelaPerfilUsuarioNovoState extends State<TelaPerfilUsuarioNovo> {
                     texto: 'Tornar-se Profissional',
                     icon: const Icon(Icons.business_center_outlined, size: 18),
                     onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaTornarProNovo()));
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => TelaTornarProNovo()));
                     },
                   ),
                 

@@ -271,7 +271,7 @@ class _TelaNovoCardState extends State<TelaNovoCard> {
                     if (widget.tornarProfissional) {
                       Navigator.pushAndRemoveUntil(
                         context,
-                        MaterialPageRoute(builder: (_) => const TelaDashboardNovo()),
+                        MaterialPageRoute(builder: (_) => TelaDashboardNovo()),
                         (route) => false,
                       );
                     } else {

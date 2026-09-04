@@ -21,12 +21,12 @@ import 'telas/professional/tela_dashboard_novo.dart';
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
-RealtimeChannel? _mensagensChannel;
+RealtimeChannel? _notificacoesChannel;
 
 /// Para o listener de notificações em tempo real (chamado no logout)
 void pararNotificacoesTempoReal() {
-  _mensagensChannel?.unsubscribe();
-  _mensagensChannel = null;
+  _notificacoesChannel?.unsubscribe();
+  _notificacoesChannel = null;
   // Limpar o cache do último utilizador para permitir re-subscrição se alguém logar de novo
   if (_rotaInicialKey.currentState != null) {
     _rotaInicialKey.currentState!._resetLastUserId();
@@ -214,10 +214,10 @@ class _RotaInicialState extends State<RotaInicial> {
     final supabaseService = SupabaseService();
 
     // Fechar canal anterior se existir
-    _mensagensChannel?.unsubscribe();
+    _notificacoesChannel?.unsubscribe();
 
-    _mensagensChannel = client
-        .channel('mensagens_repo')
+    _notificacoesChannel = client
+        .channel('notificacoes_repo')
         .onPostgresChanges(
           event: PostgresChangeEvent.insert,
           schema: 'public',
@@ -228,28 +228,18 @@ class _RotaInicialState extends State<RotaInicial> {
             final remetenteId = novo['remetente_id'];
             final clienteIdMsg = novo['cliente_id'];
 
-            // 1. NÃO mostrar notificação se eu fui o remetente
-            if (remetenteId == utilizadorId) {
-              print('DEBUG: Remetente é o utilizador ($remetenteId) — ignorar');
-              return;
-            }
+            if (remetenteId == utilizadorId) return;
 
-            // Sempre que chega uma mensagem para mim, atualizo o total no EstadoGlobal
             _recalcularBadges(utilizadorId);
 
-            // 2. Se eu sou o CLIENTE desta conversa, mostro notificação e marco como entregue
             if (clienteIdMsg == utilizadorId) {
-              print('DEBUG: Utilizador é o cliente da mensagem — notificar');
-              _mostrarNotificacaoLocal(novo);
-              
-              // Marcar como entregue se ainda estiver apenas enviado
+              _mostrarNotificacaoMensagem(novo);
               if (novo['estado'] == 'enviado') {
                 SupabaseService().atualizarEstadoMensagem(novo['id'], 'entregue');
               }
               return;
             }
 
-            // 3. Se eu sou o PROFISSIONAL dono do card, mostro notificação e marco como entregue
             try {
               final response = await client
                   .from('trabalhadores')
@@ -258,23 +248,43 @@ class _RotaInicialState extends State<RotaInicial> {
                   .single();
 
               if (response['utilizador_id'] == utilizadorId) {
-                print('DEBUG: Utilizador é o profissional dono do card — notificar');
-                _mostrarNotificacaoLocal(novo);
-
-                // Marcar como entregue se ainda estiver apenas enviado
+                _mostrarNotificacaoMensagem(novo);
                 if (novo['estado'] == 'enviado') {
                   SupabaseService().atualizarEstadoMensagem(novo['id'], 'entregue');
                 }
-              } else {
-                print('DEBUG: Mensagem não é para o utilizador atual — ignorar');
+              }
+            } catch (e) {}
+          },
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'avaliacoes',
+          callback: (payload) async {
+            final novo = payload.newRecord;
+            final trabalhadorId = novo['trabalhador_id'];
+            final remetenteId = novo['utilizador_id']; // ID de quem avaliou
+
+            if (remetenteId == utilizadorId) return;
+
+            try {
+              final response = await client
+                  .from('trabalhadores')
+                  .select('utilizador_id, nome_trabalhador')
+                  .eq('id', trabalhadorId)
+                  .single();
+
+              if (response['utilizador_id'] == utilizadorId) {
+                print('DEBUG: Recebeu uma nova avaliação no card ${response['nome_trabalhador']}');
+                _mostrarNotificacaoAvaliacao(novo, response['nome_trabalhador']);
               }
             } catch (e) {
-              print('Erro ao verificar dono da mensagem: $e');
+              print('Erro ao verificar dono da avaliação: $e');
             }
           },
         );
     
-    _mensagensChannel!.subscribe();
+    _notificacoesChannel!.subscribe();
   }
 
   /// Recalcula o total de conversas/mensagens não lidas e atualiza o Provider
@@ -292,7 +302,7 @@ class _RotaInicialState extends State<RotaInicial> {
     }
   }
 
-  void _mostrarNotificacaoLocal(Map<String, dynamic> novo) {
+  void _mostrarNotificacaoMensagem(Map<String, dynamic> novo) {
     flutterLocalNotificationsPlugin.show(
       novo['id'],
       'Nova mensagem!',
@@ -302,6 +312,25 @@ class _RotaInicialState extends State<RotaInicial> {
           channel.id,
           channel.name,
           channelDescription: channel.description,
+          importance: Importance.max,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+        ),
+      ),
+    );
+  }
+
+  void _mostrarNotificacaoAvaliacao(Map<String, dynamic> novo, String nomeCard) {
+    final estrelas = novo['estrelas'] ?? 5;
+    flutterLocalNotificationsPlugin.show(
+      novo['id'],
+      'Nova Avaliação ⭐',
+      'Recebeste $estrelas estrelas no teu card "$nomeCard"!',
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'avaliacoes_channel',
+          'Avaliações',
+          channelDescription: 'Notificações de novas avaliações recebidas',
           importance: Importance.max,
           priority: Priority.high,
           icon: '@mipmap/ic_launcher',
@@ -342,7 +371,7 @@ class _RotaInicialState extends State<RotaInicial> {
             // Mostrar notificação local após um pequeno atraso para cada uma
             Future.delayed(Duration(seconds: contador * 3), () async {
               if (mounted) {
-                _mostrarNotificacaoLocal(p);
+                _mostrarNotificacaoMensagem(p);
                 // Apagar do banco após mostrar
                 await supabaseService.apagarNotificacaoPendente(p['id']);
               }
@@ -374,10 +403,10 @@ class _RotaInicialState extends State<RotaInicial> {
     final estado = Provider.of<EstadoGlobal>(context);
     
     if (estado.modoProfissional) {
-      return const TelaDashboardNovo();
+      return TelaDashboardNovo();
     }
     
-    return const TelaFeedNovo();
+    return TelaFeedNovo();
   }
 }
 
