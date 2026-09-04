@@ -30,7 +30,7 @@ class LogoNovo extends StatelessWidget {
                 ),
               ),
               child: Text(
-                'W',
+                'L',
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w900,
@@ -40,7 +40,7 @@ class LogoNovo extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Text(
-              'Work',
+              'Liri',
               style: TextStyle(
                 fontWeight: FontWeight.w900,
                 fontSize: fontSize,
@@ -48,7 +48,7 @@ class LogoNovo extends StatelessWidget {
               ),
             ),
             Text(
-              'GB',
+              'fy',
               style: TextStyle(
                 fontWeight: FontWeight.w900,
                 fontSize: fontSize,

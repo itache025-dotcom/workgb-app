@@ -1,6 +1,6 @@
 import '../servicos/conversao.dart';
 
-/// Modelo que representa um utilizador do WorkGB
+/// Modelo que representa um utilizador do Lirify
 class UsuarioModel {
   final String id;
   final String nomeUsuario;

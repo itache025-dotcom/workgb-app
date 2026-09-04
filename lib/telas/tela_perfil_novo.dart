@@ -365,7 +365,7 @@ class _TelaPerfilNovoState extends State<TelaPerfilNovo> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: BotaoOutlinedNovo(
-                          texto: 'Chat WorkGB',
+                          texto: 'Chat Lirify',
                           icon: const Icon(Icons.chat_bubble, size: 18),
                           onPressed: () {
                             Navigator.push(

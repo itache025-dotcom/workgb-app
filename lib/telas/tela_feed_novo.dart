@@ -247,8 +247,7 @@ class _TelaFeedNovoState extends State<TelaFeedNovo> {
             elevation: 1,
             title: Row(
               children: const [
-                Text('Work', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: CoresNovo.navyPrimary)),
-                Text('GB', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: CoresNovo.starYellow)),
+                Text('Lirify', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: CoresNovo.navyPrimary)),
               ],
             ),
             actions: [
@@ -725,7 +724,7 @@ class _TelaFeedNovoState extends State<TelaFeedNovo> {
           ),
           const SizedBox(height: 12),
           const Text(
-            'Cadastre os seus serviços no WorkGB, mostre fotos do seu trabalho e responda aos clientes diretamente pelo WhatsApp ou Chat.',
+            'Cadastre os seus serviços no Lirify, mostre fotos do seu trabalho e responda aos clientes diretamente pelo WhatsApp ou Chat.',
             style: TextStyle(color: Colors.white, fontSize: 12, height: 1.4),
           ),
           const SizedBox(height: 16),

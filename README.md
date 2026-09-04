@@ -1,12 +1,12 @@
-# 🇬🇼 WorkGB — Marketplace de Talentos da Guiné-Bissau
+# 🇬🇼 Lirify — Marketplace de Talentos da Guiné-Bissau
 
-**WorkGB** é uma aplicação móvel moderna desenvolvida em Flutter, concebida para conectar prestadores de serviços (profissionais) e clientes na Guiné-Bissau. O projeto resolve a dificuldade de encontrar mão-de-obra qualificada e de confiança, oferecendo uma plataforma centralizada para a descoberta, contacto e avaliação de talentos locais.
+**Lirify** é uma aplicação móvel moderna desenvolvida em Flutter, concebida para conectar prestadores de serviços (profissionais) e clientes na Guiné-Bissau. O projeto resolve a dificuldade de encontrar mão-de-obra qualificada e de confiança, oferecendo uma plataforma centralizada para a descoberta, contacto e avaliação de talentos locais.
 
 ---
 
 ## 🚀 Visão Geral
 
-O WorkGB funciona como um marketplace onde profissionais de diversas áreas (desde eletricistas a cabeleireiras) podem publicar os seus serviços através de "cards" digitais. Os clientes podem navegar por estes cards, filtrar por profissão ou bairro, ver certificados, ler avaliações e iniciar conversas diretas via chat ou chamadas.
+O Lirify funciona como um marketplace onde profissionais de diversas áreas (desde eletricistas a cabeleireiras) podem publicar os seus serviços através de "cards" digitais. Os clientes podem navegar por estes cards, filtrar por profissão ou bairro, ver certificados, ler avaliações e iniciar conversas diretas via chat ou chamadas.
 
 ---
 
@@ -111,7 +111,7 @@ lib/
 
 ## 📝 Licença
 
-Este projeto é de uso interno e privado para a plataforma WorkGB.
+Este projeto é de uso interno e privado para a plataforma Lirify.
 
 ---
-**WorkGB — Conectando a Guiné-Bissau ao talento que precisa.** 😊🇬🇼
+**Lirify — Conectando a Guiné-Bissau ao talento que precisa.** 😊🇬🇼

@@ -140,7 +140,7 @@ class _TelaLeadsNovoState extends State<TelaLeadsNovo> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(children: [const Icon(Icons.account_balance_wallet, size: 14, color: CoresNovo.navyPrimary), const SizedBox(width: 4), Text(budget, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: CoresNovo.navyPrimary))]),
-              const Text('Via Chat WorkGB', style: TextStyle(fontSize: 11, color: CoresNovo.textSecondary, fontWeight: FontWeight.w500)),
+              const Text('Via Chat Lirify', style: TextStyle(fontSize: 11, color: CoresNovo.textSecondary, fontWeight: FontWeight.w500)),
             ],
           ),
           const Divider(height: 24, thickness: 0.5),
@@ -160,7 +160,7 @@ class _TelaLeadsNovoState extends State<TelaLeadsNovo> {
                     );
                     Navigator.push(context, MaterialPageRoute(builder: (_) => TelaChatNovo(trabalhador: t)));
                   },
-                  child: _buildMiniAction(Icons.forum, 'Chat GB', CoresNovo.blueSecondary, Colors.white, false),
+                  child: _buildMiniAction(Icons.forum, 'Chat Lirify', CoresNovo.blueSecondary, Colors.white, false),
                 ),
               ),
             ],

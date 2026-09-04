@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CoresNovo {
-  // WorkGB Brand Colors (Guiné-Bissau Marketplace)
+  // Lirify Brand Colors (Guiné-Bissau Marketplace)
   static const Color navyPrimary = Color(0xFF1A3A6D);      // Azul principal escuro elegante
   static const Color blueSecondary = Color(0xFF2B5A9E);    // Azul secundário
   static const Color blueLight = Color(0xFFEBF2FA);        // Fundo de tags azul claro

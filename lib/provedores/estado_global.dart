@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../modelos/usuario_model.dart';
 import '../modelos/trabalhador_model.dart';
 
-/// Provider global que partilha o estado entre todas as telas do WorkGB
+/// Provider global que partilha o estado entre todas as telas do Lirify
 class EstadoGlobal extends ChangeNotifier {
   // ---------- ESTADO DO UTILIZADOR ----------
   UsuarioModel? _usuarioLogado;

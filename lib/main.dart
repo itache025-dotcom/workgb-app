@@ -39,7 +39,7 @@ final GlobalKey<_RotaInicialState> _rotaInicialKey = GlobalKey<_RotaInicialState
 const AndroidNotificationChannel channel = AndroidNotificationChannel(
   'mensagens_channel',
   'Mensagens',
-  description: 'Notificações de mensagens do WorkGB',
+  description: 'Notificações de mensagens do Lirify',
   importance: Importance.max,
 );
 
@@ -51,7 +51,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
     'mensagens_channel',
     'Mensagens',
-    channelDescription: 'Notificações de mensagens do WorkGB',
+    channelDescription: 'Notificações de mensagens do Lirify',
     importance: Importance.max,
     priority: Priority.high,
     icon: '@mipmap/ic_launcher',
@@ -130,18 +130,18 @@ void main() async {
     anonKey: 'sb_publishable_nQRcQO49GKcYXHeO4JBZkg_qkryHtMU',
   );
 
-  runApp(const WorkGBApp());
+  runApp(const LirifyApp());
 }
 
-class WorkGBApp extends StatelessWidget {
-  const WorkGBApp({super.key});
+class LirifyApp extends StatelessWidget {
+  const LirifyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => EstadoGlobal(),
       child: MaterialApp(
-        title: 'WorkGB',
+        title: 'Lirify',
         debugShowCheckedModeBanner: false,
         theme: TemaNovo.lightTheme, // Usando o novo tema para teste
         darkTheme: TemaNovo.darkTheme,
@@ -183,7 +183,7 @@ class _RotaInicialState extends State<RotaInicial> {
         builder: (ctx) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: const Text('Nova versão disponível!'),
-          content: const Text('Há uma nova versão do WorkGB com correções e melhorias. Deseja atualizar agora?'),
+          content: const Text('Há uma nova versão do Lirify com correções e melhorias. Deseja atualizar agora?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),

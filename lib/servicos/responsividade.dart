@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Classe para responsividade do WorkGB
+/// Classe para responsividade do Lirify
 class Responsividade {
   /// Obtém o número de colunas para a grid de cards
   static int numeroColunas(BuildContext context) {

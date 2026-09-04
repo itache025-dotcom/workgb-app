@@ -266,7 +266,7 @@ class _TelaChatNovoState extends State<TelaChatNovo> {
         margin: const EdgeInsets.only(top: 8, bottom: 20),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(color: const Color(0xFFE2E8F0).withOpacity(0.8), borderRadius: BorderRadius.circular(8)),
-        child: const Text('🔒 Conversa segura pelo WorkGB Guiné-Bissau', style: TextStyle(fontSize: 11, color: CoresNovo.textSecondary)),
+        child: const Text('🔒 Conversa segura pelo Lirify Guiné-Bissau', style: TextStyle(fontSize: 11, color: CoresNovo.textSecondary)),
       ),
     );
   }

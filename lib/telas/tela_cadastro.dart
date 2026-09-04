@@ -12,7 +12,7 @@ import 'tela_painel_profissional.dart';
 import '../servicos/responsividade.dart';
 import '../servicos/servico_erros.dart';
 
-/// Tela de cadastro do WorkGB
+/// Tela de cadastro do Lirify
 /// Recolhe nome, email, telefone, senha e localização GPS do utilizador
 class TelaCadastro extends StatefulWidget {
   final String tipoLogin;
@@ -137,7 +137,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
           const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
             'mensagens_channel',
             'Mensagens',
-            channelDescription: 'Notificações de mensagens do WorkGB',
+            channelDescription: 'Notificações de mensagens do Lirify',
             importance: Importance.max,
             priority: Priority.high,
             icon: '@mipmap/ic_launcher',
@@ -193,7 +193,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                   children: [
                     // ---------- TÍTULO ----------
                 Text(
-                  'WorkGB',
+                  'Lirify',
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 32,

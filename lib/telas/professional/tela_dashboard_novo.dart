@@ -426,7 +426,7 @@ class _TelaDashboardNovoState extends State<TelaDashboardNovo> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Dica WorkGB para mais clientes:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF92400E))),
+                Text('Dica Lirify para mais clientes:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF92400E))),
                 SizedBox(height: 2),
                 Text(
                   'Profissionais que respondem em menos de 10 minutos fecham 3x mais orçamentos.',

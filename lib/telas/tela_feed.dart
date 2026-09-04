@@ -15,7 +15,7 @@ import 'tela_video_player.dart';
 
 final SupabaseService _supabaseService = SupabaseService();
 
-/// Tela principal do WorkGB - Feed de trabalhadores estilo Pinterest
+/// Tela principal do Lirify - Feed de trabalhadores estilo Pinterest
 /// Mostra grid de cards com foto (placeholder), nome e profissão
 class TelaFeed extends StatefulWidget {
   const TelaFeed({super.key});
@@ -193,7 +193,7 @@ class _TelaFeedState extends State<TelaFeed> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
-          'WorkGB',
+          'Lirify',
           style: TextStyle(
             fontFamily: 'Poppins',
             fontWeight: FontWeight.bold,

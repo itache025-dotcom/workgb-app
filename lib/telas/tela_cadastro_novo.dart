@@ -320,7 +320,7 @@ class _TelaCadastroNovoState extends State<TelaCadastroNovo> {
                   ),
                   const Expanded(
                     child: Text(
-                      'Concordo com os Termos de Serviço e Política de Privacidade do WorkGB',
+                      'Concordo com os Termos de Serviço e Política de Privacidade do Lirify',
                       style: TextStyle(fontSize: 12, color: CoresNovo.textSecondary),
                     ),
                   ),

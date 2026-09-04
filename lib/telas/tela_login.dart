@@ -12,7 +12,7 @@ import '../servicos/servico_erros.dart';
 
 final AuthService _authService = AuthService();
 
-/// Tela de login do WorkGB
+/// Tela de login do Lirify
 /// Permite entrar com email ou telefone e senha
 class TelaLogin extends StatefulWidget {
   final String tipoLogin; // 'cliente' ou 'profissional'
@@ -116,7 +116,7 @@ class _TelaLoginState extends State<TelaLogin> {
           const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
             'mensagens_channel',
             'Mensagens',
-            channelDescription: 'Notificações de mensagens do WorkGB',
+            channelDescription: 'Notificações de mensagens do Lirify',
             importance: Importance.max,
             priority: Priority.high,
             icon: '@mipmap/ic_launcher',
@@ -175,7 +175,7 @@ class _TelaLoginState extends State<TelaLogin> {
                   children: [
                     // ---------- TÍTULO ----------
                     Text(
-                      'WorkGB',
+                      'Lirify',
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 32,

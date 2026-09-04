@@ -12,16 +12,16 @@ import 'telas/professional/tela_tornar_pro_novo.dart';
 import 'modelos/trabalhador_model.dart';
 
 void main() {
-  runApp(const WorkGBShowcaseApp());
+  runApp(const LirifyShowcaseApp());
 }
 
-class WorkGBShowcaseApp extends StatelessWidget {
-  const WorkGBShowcaseApp({super.key});
+class LirifyShowcaseApp extends StatelessWidget {
+  const LirifyShowcaseApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'WorkGB Novo Design Showcase',
+      title: 'Lirify Novo Design Showcase',
       debugShowCheckedModeBanner: false,
       theme: TemaNovo.lightTheme,
       darkTheme: TemaNovo.darkTheme,
