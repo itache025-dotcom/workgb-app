@@ -11,8 +11,12 @@ class ServicoAtualizacao {
   /// Verifica se há nova versão disponível
   static Future<bool> verificarAtualizacao() async {
     try {
-      final resposta = await http.get(Uri.parse(_urlVersao)).timeout(const Duration(seconds: 5));
-      if (resposta.statusCode != 200) return false;
+      print('DEBUG SERV_ATUALIZACAO: Consultando $_urlVersao');
+      final resposta = await http.get(Uri.parse(_urlVersao)).timeout(const Duration(seconds: 15));
+      if (resposta.statusCode != 200) {
+        print('DEBUG SERV_ATUALIZACAO: Erro na resposta: ${resposta.statusCode}');
+        return false;
+      }
 
       final dados = json.decode(resposta.body);
       final versaoRemota = dados['versao'].toString();
@@ -20,9 +24,14 @@ class ServicoAtualizacao {
       final info = await PackageInfo.fromPlatform();
       final versaoLocal = info.version;
 
+      print('DEBUG SERV_ATUALIZACAO: Local: $versaoLocal | Remota: $versaoRemota');
+
       // Comparar versões
-      return _compararVersoes(versaoRemota, versaoLocal) > 0;
+      final resultado = _compararVersoes(versaoRemota, versaoLocal) > 0;
+      print('DEBUG SERV_ATUALIZACAO: Resultado comparação: $resultado');
+      return resultado;
     } catch (e) {
+      print('DEBUG SERV_ATUALIZACAO ERRO: $e');
       return false;
     }
   }
@@ -30,7 +39,7 @@ class ServicoAtualizacao {
   /// Obtém o URL do APK mais recente
   static Future<String?> obterUrlApk() async {
     try {
-      final resposta = await http.get(Uri.parse(_urlVersao)).timeout(const Duration(seconds: 5));
+      final resposta = await http.get(Uri.parse(_urlVersao)).timeout(const Duration(seconds: 15));
       if (resposta.statusCode != 200) return null;
 
       final dados = json.decode(resposta.body);

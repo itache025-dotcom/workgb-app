@@ -174,35 +174,42 @@ class _RotaInicialState extends State<RotaInicial> {
   }
 
   Future<void> _verificarAtualizacao() async {
-    final atualizacaoDisponivel = await ServicoAtualizacao.verificarAtualizacao();
+    print('DEBUG ATUALIZACAO: Iniciando verificação...');
+    try {
+      final atualizacaoDisponivel = await ServicoAtualizacao.verificarAtualizacao();
+      print('DEBUG ATUALIZACAO: Disponível? $atualizacaoDisponivel');
 
-    if (atualizacaoDisponivel && mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (ctx) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text('Nova versão disponível!'),
-          content: const Text('Há uma nova versão do Lirify com correções e melhorias. Deseja atualizar agora?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Agora não'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.pop(ctx);
-                await ServicoAtualizacao.abrirDownload();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2563EB),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      if (atualizacaoDisponivel && mounted) {
+        print('DEBUG ATUALIZACAO: Mostrando alerta');
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: const Text('Nova versão disponível!'),
+            content: const Text('Há uma nova versão do Lirify com correções e melhorias. Deseja atualizar agora?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Agora não'),
               ),
-              child: const Text('Atualizar', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        ),
-      );
+              ElevatedButton(
+                onPressed: () async {
+                  Navigator.pop(ctx);
+                  await ServicoAtualizacao.abrirDownload();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2563EB),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                child: const Text('Atualizar', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      print('DEBUG ATUALIZACAO ERRO: $e');
     }
   }
 
