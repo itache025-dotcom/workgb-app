@@ -173,6 +173,59 @@ class _RotaInicialState extends State<RotaInicial> {
     _verificarSessao();
   }
 
+  void _exibirDialogoDownload(String url) {
+    double progresso = 0;
+    StateSetter? setDialogState;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            setDialogState = setState;
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Text('A baixar atualização...'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Por favor, aguarda enquanto descarregamos a nova versão.'),
+                  const SizedBox(height: 24),
+                  LinearProgressIndicator(
+                    value: progresso,
+                    backgroundColor: Colors.grey[200],
+                    color: const Color(0xFF2563EB),
+                    minHeight: 10,
+                  ),
+                  const SizedBox(height: 12),
+                  Text('${(progresso * 100).toStringAsFixed(0)}%'),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    ServicoAtualizacao.baixarApk(url, onProgress: (p) {
+      if (setDialogState != null) {
+        setDialogState!(() {
+          progresso = p;
+        });
+      }
+    }).then((_) {
+      if (mounted) Navigator.pop(context);
+    }).catchError((e) {
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao baixar: $e'), backgroundColor: Colors.red),
+        );
+      }
+    });
+  }
+
   Future<void> _verificarAtualizacao() async {
     print('DEBUG ATUALIZACAO: Iniciando verificação...');
     try {
@@ -180,6 +233,9 @@ class _RotaInicialState extends State<RotaInicial> {
       print('DEBUG ATUALIZACAO: Disponível? $atualizacaoDisponivel');
 
       if (atualizacaoDisponivel && mounted) {
+        final urlApk = await ServicoAtualizacao.obterUrlApk();
+        if (urlApk == null) return;
+
         print('DEBUG ATUALIZACAO: Mostrando alerta');
         showDialog(
           context: context,
@@ -196,7 +252,7 @@ class _RotaInicialState extends State<RotaInicial> {
               ElevatedButton(
                 onPressed: () async {
                   Navigator.pop(ctx);
-                  await ServicoAtualizacao.abrirDownload();
+                  _exibirDialogoDownload(urlApk);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2563EB),

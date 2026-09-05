@@ -1,7 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:dio/dio.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ServicoAtualizacao {
   static String get _urlVersao {
@@ -46,6 +50,37 @@ class ServicoAtualizacao {
       return dados['url_apk'];
     } catch (e) {
       return null;
+    }
+  }
+
+  /// Faz o download do APK e abre para instalação
+  static Future<void> baixarApk(String url, {Function(double)? onProgress}) async {
+    try {
+      final dio = Dio();
+      final dir = await getTemporaryDirectory();
+      final caminho = '${dir.path}/lirify_update.apk';
+
+      // Remover arquivo antigo se existir
+      final file = File(caminho);
+      if (await file.exists()) {
+        await file.delete();
+      }
+
+      await dio.download(
+        url,
+        caminho,
+        onReceiveProgress: (recebido, total) {
+          if (onProgress != null && total > 0) {
+            onProgress(recebido / total);
+          }
+        },
+      );
+
+      print('DEBUG DOWNLOAD: APK baixado em $caminho');
+      await OpenFilex.open(caminho);
+    } catch (e) {
+      print('ERRO NO DOWNLOAD: $e');
+      rethrow;
     }
   }
 
